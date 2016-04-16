@@ -250,7 +250,8 @@ BOOL ClientSocket::Packet(unsigned short msgCode, ::CMarkup &xml)
 
 void ClientSocket::OnClose(int nErrorCode)
 {
-	m_pDlg->m_editLog.Clear();
+	//m_pDlg->m_editLog.Clear();
+	m_pDlg->m_listLog.ResetContent();
 	AfxMessageBox(_T("·þÎñÆ÷¹Ø±Õ£¡"));
 	this->Close();
 	delete this;

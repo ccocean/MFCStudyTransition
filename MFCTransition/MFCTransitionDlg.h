@@ -79,6 +79,9 @@ public:
 	LRESULT Reconnect(WPARAM wParam, LPARAM lParam);
 	BOOL CheckUpDown(int up, int dn){ return up == dn; };
 	
+	BOOL isDebug = FALSE;
+	BOOL isShowBtn = FALSE;
+	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	void UpdateLog(CString str);
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 	CComboBox m_comboCom;
@@ -87,7 +90,11 @@ public:
 	CButton m_btnConnect;
 	afx_msg void OnBnClickedButtonConnect();
 	CIPAddressCtrl m_ipServer;
-	CEdit m_editLog;
+	//CEdit m_editLog;
 	CString m_ipStr;
+	CRect wndRect;
 	afx_msg void OnBnClickedButtonCom();
+	CListBox m_listLog;
+	CButton m_btnDebug;
+	afx_msg void OnBnClickedButton1();
 };

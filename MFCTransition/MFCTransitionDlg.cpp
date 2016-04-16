@@ -65,7 +65,9 @@ void CMFCTransitionDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT_BAUD, m_editBaud);
 	DDX_Control(pDX, IDC_BUTTON_CONNECT, m_btnConnect);
 	DDX_Control(pDX, IDC_IPADDRESS_SERVER, m_ipServer);
-	DDX_Control(pDX, IDC_EDIT1, m_editLog);
+	//DDX_Control(pDX, IDC_EDIT1, m_editLog);
+	DDX_Control(pDX, IDC_LIST1, m_listLog);
+	DDX_Control(pDX, IDC_BUTTON1, m_btnDebug);
 }
 
 BEGIN_MESSAGE_MAP(CMFCTransitionDlg, CDialogEx)
@@ -78,6 +80,7 @@ BEGIN_MESSAGE_MAP(CMFCTransitionDlg, CDialogEx)
 	ON_MESSAGE(WM_APICOMMNOTIFY, &CMFCTransitionDlg::ParseSerialPack)
 	ON_MESSAGE(WM_SEND2SERIAL, &CMFCTransitionDlg::Send2SerialPort)
 	ON_BN_CLICKED(IDC_BUTTON_COM, &CMFCTransitionDlg::OnBnClickedButtonCom)
+	ON_BN_CLICKED(IDC_BUTTON1, &CMFCTransitionDlg::OnBnClickedButton1)
 END_MESSAGE_MAP()
 
 
@@ -122,6 +125,9 @@ BOOL CMFCTransitionDlg::OnInitDialog()
 	m_comboCom.SetCurSel(0);
 	m_spConnect = FALSE;
 	m_connet = FALSE;
+	GetWindowRect(wndRect);
+	SetWindowPos(NULL, 0, 0, wndRect.right, wndRect.bottom - 260, SWP_NOMOVE);
+	m_btnDebug.ShowWindow(isShowBtn);
 	
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
@@ -281,7 +287,8 @@ LRESULT CMFCTransitionDlg::Reconnect(WPARAM wParam, LPARAM lParam)
 		int nResult;
 		if (CreateLoginXml(xml, nResult))
 		{
-			m_editLog.Clear();
+			//m_editLog.Clear();
+			m_listLog.ResetContent();
 			m_btnConnect.SetWindowText(_T("断开"));
 		}
 		return TRUE;
@@ -376,10 +383,9 @@ void CMFCTransitionDlg::OnTimer(UINT_PTR nIDEvent)
 
 void CMFCTransitionDlg::UpdateLog(CString str)
 {
-	if (m_editLog.GetLineCount()>100)
+	if (m_listLog.GetCount()>400)
 	{
-		m_editLog.SetSel(0, -1);
-		m_editLog.Clear();
+		m_listLog.ResetContent();
 	}
 	CString string;
 
@@ -396,15 +402,59 @@ void CMFCTransitionDlg::UpdateLog(CString str)
 
 	// 格式化当前时间
 
-	int lastLine = m_editLog.LineIndex(m_editLog.GetLineCount() - 1);
-
+	int lastLine = m_listLog.GetCount();
+	m_listLog.InsertString(lastLine, string);
+	m_listLog.SetCurSel(lastLine);
 	//获取编辑框最后一行索引
 
-	m_editLog.SetSel(lastLine + 1, lastLine + 2, 0);
+	//m_editLog.SetSel(lastLine + 1, lastLine + 2, 0);
 
 	//选择编辑框最后一行
 
-	m_editLog.ReplaceSel(string);                                                             //替换所选那一行的内容
+	//m_editLog.ReplaceSel(string);                                                             //替换所选那一行的内容
+
+}
+
+BOOL CMFCTransitionDlg::PreTranslateMessage(MSG* pMsg)
+{
+	if (pMsg->message == WM_KEYDOWN   &&   pMsg->wParam == VK_ESCAPE)
+	{
+		//pMsg->wParam = VK_RETURN;   //将ESC键的消息替换为回车键的消息，这样，按ESC的时候  
+		return TRUE;
+		//也会去调用OnOK函数，而OnOK什么也不做，这样ESC也被屏蔽  
+	}
+	if (pMsg->message == WM_KEYDOWN&&pMsg->wParam == VK_RETURN)
+	{
+		return TRUE;
+	}
+	if (pMsg->message == WM_KEYDOWN)
+	{
+		if (GetKeyState(VK_CONTROL) < 0) // 或者: if (GetAsyncKeyState(VK_CONTROL) & 0x8000)  
+		{
+			if (pMsg->wParam == 'D')
+			{
+				//AfxMessageBox(_T("ctrl + d"));
+				if (!isShowBtn)
+				{
+					isShowBtn = TRUE;
+					m_btnDebug.ShowWindow(isShowBtn);
+					m_btnDebug.SetWindowText(_T("↓"));
+					//SetWindowPos(NULL, 0, 0, wndRect.right, wndRect.bottom, SWP_NOMOVE);
+				}
+				else
+				{
+					if (!isDebug)
+					{
+						isShowBtn = FALSE;
+						m_btnDebug.ShowWindow(isShowBtn);
+					}
+					//m_btnDebug.SetWindowText(_T("↓"));
+					//SetWindowPos(NULL, 0, 0, wndRect.right, wndRect.bottom - 260, SWP_NOMOVE);
+				}
+			}
+		}
+	}
+	return CDialogEx::PreTranslateMessage(pMsg);
 }
 
 void CMFCTransitionDlg::OnBnClickedButtonConnect()
@@ -435,7 +485,8 @@ void CMFCTransitionDlg::OnBnClickedButtonConnect()
 			int nResult;
 			if (CreateLoginXml(xml, nResult))
 			{
-				m_editLog.Clear();
+				//m_editLog.Clear();
+				m_listLog.ResetContent();
 				/*switch (nResult)
 				{
 				case 1:
@@ -861,4 +912,24 @@ BOOL CMFCTransitionDlg::ConfigConnection()
 	dcb.StopBits = 0;
 	
 	return SetCommState(m_hCom, &dcb);
+}
+
+
+void CMFCTransitionDlg::OnBnClickedButton1()
+{
+	// TODO:  在此添加控件通知处理程序代码
+	if (!isDebug)
+	{
+		isDebug = TRUE;
+		m_btnDebug.SetWindowText(_T("↑"));
+		SetWindowPos(NULL, 0, 0, wndRect.right, wndRect.bottom, SWP_NOMOVE);
+	}
+	else
+	{
+		isDebug = FALSE;
+		m_btnDebug.SetWindowText(_T("↓"));
+		SetWindowPos(NULL, 0, 0, wndRect.right, wndRect.bottom - 260, SWP_NOMOVE);
+	}
+	//SetWindowPos(NULL, 0, 0, wndRect.right, wndRect.bottom, SWP_NOMOVE);
+	//SetWindowPos(NULL, 0, 0, wndRect.right, wndRect.bottom - 260, SWP_NOMOVE);
 }

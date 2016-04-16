@@ -102,6 +102,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ClientSocket.h" />
+    <ClInclude Include="DebugDlg.h" />
     <ClInclude Include="FTPTypeDef.h" />
     <ClInclude Include="Markup.h" />
     <ClInclude Include="MFCTransition.h" />
@@ -113,6 +114,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ClientSocket.cpp" />
+    <ClCompile Include="DebugDlg.cpp" />
     <ClCompile Include="Markup.cpp" />
     <ClCompile Include="MFCTransition.cpp" />
     <ClCompile Include="MFCTransitionDlg.cpp" />

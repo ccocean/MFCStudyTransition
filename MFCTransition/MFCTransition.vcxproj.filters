@@ -54,6 +54,9 @@
     <ClInclude Include="UIUtil.h">
       <Filter>UIUtil</Filter>
     </ClInclude>
+    <ClInclude Include="DebugDlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MFCTransition.cpp">
@@ -73,6 +76,9 @@
     </ClCompile>
     <ClCompile Include="UIUtil.cpp">
       <Filter>UIUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugDlg.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
