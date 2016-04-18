@@ -23,7 +23,7 @@ public:
 // ÷ÿ–¥
 public:
 	virtual BOOL InitInstance();
-	CString m_strServerIP;		//Server Ip Addr
+	
 	
 
 //  µœ÷

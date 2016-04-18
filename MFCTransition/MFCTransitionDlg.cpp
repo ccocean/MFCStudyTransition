@@ -68,6 +68,7 @@ void CMFCTransitionDlg::DoDataExchange(CDataExchange* pDX)
 	//DDX_Control(pDX, IDC_EDIT1, m_editLog);
 	DDX_Control(pDX, IDC_LIST1, m_listLog);
 	DDX_Control(pDX, IDC_BUTTON1, m_btnDebug);
+	DDX_Control(pDX, IDC_CHECK_AUTO, m_checkAuto);
 }
 
 BEGIN_MESSAGE_MAP(CMFCTransitionDlg, CDialogEx)
@@ -81,6 +82,7 @@ BEGIN_MESSAGE_MAP(CMFCTransitionDlg, CDialogEx)
 	ON_MESSAGE(WM_SEND2SERIAL, &CMFCTransitionDlg::Send2SerialPort)
 	ON_BN_CLICKED(IDC_BUTTON_COM, &CMFCTransitionDlg::OnBnClickedButtonCom)
 	ON_BN_CLICKED(IDC_BUTTON1, &CMFCTransitionDlg::OnBnClickedButton1)
+	ON_BN_CLICKED(IDC_CHECK_AUTO, &CMFCTransitionDlg::OnBnClickedCheckAuto)
 END_MESSAGE_MAP()
 
 
@@ -128,6 +130,47 @@ BOOL CMFCTransitionDlg::OnInitDialog()
 	GetWindowRect(wndRect);
 	SetWindowPos(NULL, 0, 0, wndRect.right, wndRect.bottom - 260, SWP_NOMOVE);
 	m_btnDebug.ShowWindow(isShowBtn);
+
+	CStdioFile myFile;
+	int cnt = 0;
+	int len;
+	CString temp;
+	BOOL openResult = myFile.Open(_T("connectInfo.txt"), CFile::modeRead);
+	if (!openResult)
+	{
+		openResult = myFile.Open(_T("connectInfo.txt"), CFile::modeCreate);
+		if (!openResult)
+		{
+			MessageBox(_T("打开文件错误！"));
+		}
+	}
+	else
+	{
+		while (myFile.ReadString(temp))
+		{
+			len = temp.GetLength();
+			if (len<=0)
+			{
+				UpdateLog(_T("读取文件错误！"));
+				break;
+			}
+			temp.Delete(len - 1, 1);
+			if (cnt == 0)
+			{
+				m_ipServer.SetWindowText(temp);
+			}
+			if (cnt == 1)
+			{
+				m_comboCom.SetCurSel(_ttoi(temp));
+			}
+			if (cnt == 2)
+			{
+				m_checkAuto.SetCheck(_ttoi(temp));
+			}
+			cnt++;
+		}
+	}
+	myFile.Close();
 	
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
@@ -265,10 +308,11 @@ LRESULT CMFCTransitionDlg::Reconnect(WPARAM wParam, LPARAM lParam)
 	m_pClient->Close();
 	m_connet = FALSE;
 	UpdateLog(_T("服务器断开连接，正在重连..."));
+	KillTimer(1);
 	//delete m_pClient;
 	//m_pClient = NULL;
 	//m_pClient = new ClientSocket;
-	m_pClient->SetParam(this);
+	
 	if (!m_pClient->Create())
 	{
 		AfxMessageBox(_T("创建套接字失败"));
@@ -282,12 +326,12 @@ LRESULT CMFCTransitionDlg::Reconnect(WPARAM wParam, LPARAM lParam)
 	}
 	else
 	{
-
+		m_pClient->SetParam(this);
 		::CMarkup xml;
 		int nResult;
 		if (CreateLoginXml(xml, nResult))
 		{
-			//m_editLog.Clear();
+			SetTimer(1, 3000, NULL);
 			m_listLog.ResetContent();
 			m_btnConnect.SetWindowText(_T("断开"));
 		}
@@ -358,7 +402,8 @@ void CMFCTransitionDlg::OnTimer(UINT_PTR nIDEvent)
 	case 1:
 		//::CMarkup heart_xml;
 		m_pClient->SetReconnectTimer(6000);
-		nRes = SendHearBeat(0, 2000, 1, 0x211);
+		//nRes = SendHearBeat(0, 2000, 1, 0x211);
+		nRes = SendHearBeat(0, 0, 0, 0);
 		if (nRes)
 		{
 			UpdateLog(_T("客户端:发送心跳!"));
@@ -486,11 +531,13 @@ void CMFCTransitionDlg::OnBnClickedButtonConnect()
 			if (CreateLoginXml(xml, nResult))
 			{
 				//m_editLog.Clear();
+				//m_strServerIP = m_ipStr;
 				m_listLog.ResetContent();
+				//SetTimer(1, 3000, NULL);
 				/*switch (nResult)
 				{
 				case 1:
-				SetTimer(1, 3000, NULL);
+				
 				theApp.m_strServerIP = m_ipStr;
 				theApp.m_connet = 1;
 				UpdateLog(_T("Login Success!"));
@@ -548,10 +595,34 @@ void CMFCTransitionDlg::OnBnClickedButtonCom()
 			UpdateLog(_T("串口已打开！"));
 			m_comboCom.EnableWindow(FALSE);
 			m_btnCom.SetWindowText(_T("断开串口"));
+
+			CStdioFile myFile;
+			CString temp;
+			isAuto = m_checkAuto.GetCheck();
+			temp.Format(_T("%d"),id);
+			BOOL openResult = myFile.Open(_T("connectInfo.txt"), CFile::modeCreate | CFile::modeReadWrite);
+			if (!openResult)
+			{
+				UpdateLog(_T("打开文件错误，写入信息失败！"));
+			}
+			else
+			{
+				myFile.SeekToBegin();
+				myFile.WriteString(m_ipStr);
+				myFile.Write(("\r\n"), 2);
+				myFile.WriteString(temp);
+				myFile.Write(("\r\n"), 2);
+				temp.Format(_T("%d"), isAuto);
+				myFile.WriteString(temp);
+				myFile.Write(("\r\n"), 2);
+				myFile.Flush();
+				myFile.Close();
+			}
 		}
 	}
 	else
 	{
+		m_listLog.ResetContent();
 		CloseCom();
 		m_btnCom.SetWindowText(_T("打开串口"));
 		m_spConnect = FALSE;
@@ -901,15 +972,15 @@ BOOL CMFCTransitionDlg::CloseCom()
 
 BOOL CMFCTransitionDlg::ConfigConnection()
 {
-	DCB dcb;
+	DCB dcb = { sizeof(dcb) };
 	if (!GetCommState(m_hCom, &dcb))
 		return FALSE;
-
-	dcb.fBinary = TRUE;
-	dcb.BaudRate = BAUDRATE;
-	dcb.ByteSize = 8;
-	dcb.fParity = NOPARITY;
-	dcb.StopBits = 0;
+	BuildCommDCB(_T("9600,8,1,n"), &dcb);
+	//dcb.fBinary = TRUE;
+	//dcb.BaudRate = BAUDRATE;
+	//dcb.ByteSize = 8;
+	//dcb.fParity = //NOPARITY;
+	//dcb.StopBits = 0;
 	
 	return SetCommState(m_hCom, &dcb);
 }
@@ -932,4 +1003,36 @@ void CMFCTransitionDlg::OnBnClickedButton1()
 	}
 	//SetWindowPos(NULL, 0, 0, wndRect.right, wndRect.bottom, SWP_NOMOVE);
 	//SetWindowPos(NULL, 0, 0, wndRect.right, wndRect.bottom - 260, SWP_NOMOVE);
+}
+
+
+void CMFCTransitionDlg::OnBnClickedCheckAuto()
+{
+	// TODO:  在此添加控件通知处理程序代码
+	HKEY hKey;
+
+	CString strRegPath = _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run");//找到系统的启动项
+
+	if (m_checkAuto.GetCheck())
+	{
+		if (RegOpenKeyEx(HKEY_CURRENT_USER,strRegPath,0,KEY_ALL_ACCESS,&hKey)==ERROR_SUCCESS)
+		{
+			TCHAR szModule[MAX_PATH];
+			GetModuleFileName(NULL, szModule, MAX_PATH);//获取本程序自身路径
+			RegSetValueEx(hKey, _T("Transition"), 0, REG_SZ, (LPBYTE)szModule, (lstrlen(szModule) + 1)*sizeof(TCHAR));
+			RegCloseKey(hKey);
+		}
+		else
+		{
+			UpdateLog(_T("系统参数错误，不能随系统自启"));
+		}
+	}
+	else
+	{
+		if (RegOpenKeyEx(HKEY_CURRENT_USER, strRegPath, 0, KEY_ALL_ACCESS, &hKey) == ERROR_SUCCESS)
+		{
+			RegDeleteValue(hKey, _T("Transition"));
+			RegCloseKey(hKey);
+		}
+	}
 }
