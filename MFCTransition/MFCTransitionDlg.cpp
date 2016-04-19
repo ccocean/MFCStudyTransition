@@ -80,9 +80,11 @@ BEGIN_MESSAGE_MAP(CMFCTransitionDlg, CDialogEx)
 	ON_MESSAGE(WM_USER_TIMEOUT, &CMFCTransitionDlg::Reconnect)
 	ON_MESSAGE(WM_APICOMMNOTIFY, &CMFCTransitionDlg::ParseSerialPack)
 	ON_MESSAGE(WM_SEND2SERIAL, &CMFCTransitionDlg::Send2SerialPort)
+	ON_MESSAGE(WM_USER_NOTIFYICON, &CMFCTransitionDlg::OnNotifyMsg)
 	ON_BN_CLICKED(IDC_BUTTON_COM, &CMFCTransitionDlg::OnBnClickedButtonCom)
 	ON_BN_CLICKED(IDC_BUTTON1, &CMFCTransitionDlg::OnBnClickedButton1)
 	ON_BN_CLICKED(IDC_CHECK_AUTO, &CMFCTransitionDlg::OnBnClickedCheckAuto)
+	ON_WM_CLOSE()
 END_MESSAGE_MAP()
 
 
@@ -119,10 +121,6 @@ BOOL CMFCTransitionDlg::OnInitDialog()
 
 	// TODO:  在此添加额外的初始化代码
 	
-	//m_loginDlg.SetSocket(m_pClient);
-		//char *pBuff = "Hello!";
-		//m_pClient->SendMSG(pBuff, 6);
-	
 	m_editBaud.SetWindowText(_T("9600"));
 	m_comboCom.SetCurSel(0);
 	m_spConnect = FALSE;
@@ -131,14 +129,15 @@ BOOL CMFCTransitionDlg::OnInitDialog()
 	SetWindowPos(NULL, 0, 0, wndRect.right, wndRect.bottom - 260, SWP_NOMOVE);
 	m_btnDebug.ShowWindow(isShowBtn);
 
+	m_filePath = GetFilePath();
 	CStdioFile myFile;
 	int cnt = 0;
 	int len;
 	CString temp;
-	BOOL openResult = myFile.Open(_T("connectInfo.txt"), CFile::modeRead);
+	BOOL openResult = myFile.Open(m_filePath+_T("connectInfo.txt"), CFile::modeRead);
 	if (!openResult)
 	{
-		openResult = myFile.Open(_T("connectInfo.txt"), CFile::modeCreate);
+		openResult = myFile.Open(m_filePath+_T("connectInfo.txt"), CFile::modeCreate);
 		if (!openResult)
 		{
 			MessageBox(_T("打开文件错误！"));
@@ -216,6 +215,17 @@ void CMFCTransitionDlg::OnPaint()
 	{
 		CDialogEx::OnPaint();
 	}
+}
+
+CString CMFCTransitionDlg::GetFilePath()
+{
+	char  exepath[MAX_PATH];
+	CString  strdir, tmpdir;
+	memset(exepath, 0, MAX_PATH);
+	GetModuleFileNameA(NULL, exepath, MAX_PATH);
+	tmpdir = exepath;
+	strdir = tmpdir.Left(tmpdir.ReverseFind('\\'));
+	return strdir+'\\';
 }
 
 /*
@@ -579,11 +589,11 @@ void CMFCTransitionDlg::OnBnClickedButtonCom()
 {
 	// TODO:  在此添加控件通知处理程序代码
 	CString port;
-	/*if (!m_connet)
+	if (!m_connet)
 	{
 		AfxMessageBox(_T("服务器未连接，请先连接服务器！"));
 		return;
-	}*/
+	}
 	int id = m_comboCom.GetCurSel();
 
 	if (!m_spConnect)
@@ -600,13 +610,14 @@ void CMFCTransitionDlg::OnBnClickedButtonCom()
 			CString temp;
 			isAuto = m_checkAuto.GetCheck();
 			temp.Format(_T("%d"),id);
-			BOOL openResult = myFile.Open(_T("connectInfo.txt"), CFile::modeCreate | CFile::modeReadWrite);
+			BOOL openResult = myFile.Open(m_filePath+_T("connectInfo.txt"), CFile::modeCreate | CFile::modeReadWrite);
 			if (!openResult)
 			{
 				UpdateLog(_T("打开文件错误，写入信息失败！"));
 			}
 			else
 			{
+				HideWindow();
 				myFile.SeekToBegin();
 				myFile.WriteString(m_ipStr);
 				myFile.Write(("\r\n"), 2);
@@ -629,6 +640,59 @@ void CMFCTransitionDlg::OnBnClickedButtonCom()
 		m_comboCom.EnableWindow(TRUE);
 		UpdateLog(_T("串口已关闭！"));
 	}
+}
+
+LRESULT CMFCTransitionDlg::OnNotifyMsg(WPARAM wParam, LPARAM lParam)
+{
+	if (wParam != IDR_MAINFRAME)
+		return    1;
+	switch (lParam)
+	{
+	case WM_RBUTTONUP:
+	{
+		LPPOINT    lpoint = new    tagPOINT;
+		::GetCursorPos(lpoint);//得到鼠标位置   
+		CMenu    menu;
+		menu.CreatePopupMenu();//声明一个弹出式菜单   
+		//增加菜单项“关闭”，点击则发送消息WM_DESTROY给主窗口（已   
+		//隐藏），将程序结束。   
+		menu.AppendMenu(MF_STRING, WM_DESTROY, _T("关闭"));
+		//确定弹出式菜单的位置   
+		menu.TrackPopupMenu(TPM_LEFTALIGN, lpoint->x, lpoint->y, this);
+		//资源回收   
+		HMENU    hmenu = menu.Detach();
+		menu.DestroyMenu();
+		Shell_NotifyIcon(NIM_DELETE, &m_tnid);
+		delete    lpoint;
+	}
+		break;
+	case    WM_LBUTTONDBLCLK://双击左键的处理   
+	{
+		this->ShowWindow(SW_SHOW);//简单的显示主窗口完事儿   
+	}
+		break;
+	default:
+		break;
+	}
+	return TRUE;
+}
+
+void CMFCTransitionDlg::HideWindow()
+{
+	if (isDebug)
+	{
+		return;
+	}
+	m_tnid.cbSize = sizeof(NOTIFYICONDATA);
+	m_tnid.hWnd = this->m_hWnd;
+	m_tnid.uID = IDR_MAINFRAME;
+	m_tnid.hIcon = LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDR_MAINFRAME));
+	//strcpy(m_tnid.szTip, "Michael_Chen is a good man");
+	m_tnid.uCallbackMessage = WM_USER_NOTIFYICON;
+	m_tnid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP; //OK,下面就是托盘产生了. 
+	Shell_NotifyIcon(NIM_ADD, &m_tnid);
+	//SetWindowPos(NULL, 0, 0, 0, 0, SWP_HIDEWINDOW);
+	ShowWindow(SW_HIDE);
 }
 
 LRESULT CMFCTransitionDlg::Send2SerialPort(WPARAM wParam, LPARAM lParam)
@@ -690,8 +754,9 @@ LRESULT CMFCTransitionDlg::ParseSerialPack(WPARAM wParam, LPARAM lParam)
 			return FALSE;
 		}
 		SetRecordStatus(rcdType, _T(""), _T(""), _T(""), _T(""));
-		temp = ReadyBuffer;
-		temp += "串口：<--更新录制模式-->";
+		
+		temp = "串口：<--更新录制模式-->";
+		temp += ReadyBuffer;
 		isSet = E;
 		UpdateLog(temp);
 		return TRUE;
@@ -708,8 +773,9 @@ LRESULT CMFCTransitionDlg::ParseSerialPack(WPARAM wParam, LPARAM lParam)
 			return FALSE;
 		}
 		SetManageMode(mngType);
-		temp = ReadyBuffer;
-		temp += "串口：<--更新导播模式-->";
+		
+		temp = "串口：<--更新导播模式-->";
+		temp += ReadyBuffer;
 		isSet = F;
 		UpdateLog(temp);
 		return TRUE;
@@ -728,8 +794,9 @@ LRESULT CMFCTransitionDlg::ParseSerialPack(WPARAM wParam, LPARAM lParam)
 		//if (up_f==1)//1为自动模式
 		//	SetManageMode(2);//2位手动模式
 		SetOrGetMode(TRUE, 0, 0, 0, mode, 0, 0);
-		temp = ReadyBuffer;
-		temp += "串口：<--更新电影模式-->";
+		
+		temp = "串口：<--更新电影模式-->";
+		temp += ReadyBuffer;
 		isSet = D;
 		UpdateLog(temp);
 		return TRUE;
@@ -836,7 +903,7 @@ UINT CMFCTransitionDlg::CommProc(LPVOID pParam)
 	COMSTAT ComStat;
 	DWORD dwErrorFlags;
 	
-	
+	//int temp = 0;
 
 	CMFCTransitionDlg *pDlg = (CMFCTransitionDlg*)pParam;
 
@@ -855,11 +922,13 @@ UINT CMFCTransitionDlg::CommProc(LPVOID pParam)
 	}
 	while (pDlg->m_spConnect)
 	{
+		
 		ClearCommError(pDlg->m_hCom, &dwErrorFlags, &ComStat);
 		if (ComStat.cbInQue)
 		{
 			pDlg->OnAPICommNotify();
 		}
+		//pDlg->UpdateLog(_T("接受等待"));
 		dwMask = 0;
 		if (!WaitCommEvent(pDlg->m_hCom, &dwMask, &os))
 		{
@@ -873,6 +942,7 @@ UINT CMFCTransitionDlg::CommProc(LPVOID pParam)
 				return (UINT)-1;
 			}
 		}
+		//pDlg->UpdateLog(_T("接受完成"));
 	}
 	CloseHandle(os.hEvent);
 	return 0;
@@ -909,17 +979,18 @@ BOOL CMFCTransitionDlg::OpenCom(CString port)
 
 	if (ConfigConnection())
 	{
-		m_pThread = AfxBeginThread(CommProc, this, THREAD_PRIORITY_HIGHEST,0,0,NULL);
+		m_pThread = AfxBeginThread(CommProc, this, THREAD_PRIORITY_HIGHEST,0,CREATE_SUSPENDED,NULL);
 		if (m_pThread==NULL)
 		{
+			//m_spConnect = FALSE;
 			CloseHandle(m_hCom);
 			AfxMessageBox(_T("创建线程错误！"));
 			return FALSE;
 		}
 		else
 		{
-			PurgeComm(m_hCom, PURGE_TXCLEAR | PURGE_RXCLEAR);
 			m_spConnect = TRUE;
+			PurgeComm(m_hCom, PURGE_TXCLEAR | PURGE_RXCLEAR);
 			m_pThread->ResumeThread();
 		}
 	}
@@ -967,6 +1038,7 @@ BOOL CMFCTransitionDlg::CloseCom()
 	m_pThread = NULL;
 
 	CloseHandle(m_hCom);
+	m_hCom = NULL;
 	return TRUE;
 }
 
@@ -975,12 +1047,12 @@ BOOL CMFCTransitionDlg::ConfigConnection()
 	DCB dcb = { sizeof(dcb) };
 	if (!GetCommState(m_hCom, &dcb))
 		return FALSE;
-	BuildCommDCB(_T("9600,8,1,n"), &dcb);
-	//dcb.fBinary = TRUE;
-	//dcb.BaudRate = BAUDRATE;
-	//dcb.ByteSize = 8;
-	//dcb.fParity = //NOPARITY;
-	//dcb.StopBits = 0;
+	//BuildCommDCB(_T("9600,8,1,n"), &dcb);
+	dcb.fBinary = TRUE;
+	dcb.BaudRate = 9600;
+	dcb.ByteSize = 8;
+	dcb.fParity = FALSE;//NOPARITY;
+	dcb.StopBits = 0;
 	
 	return SetCommState(m_hCom, &dcb);
 }
@@ -1035,4 +1107,12 @@ void CMFCTransitionDlg::OnBnClickedCheckAuto()
 			RegCloseKey(hKey);
 		}
 	}
+}
+
+
+void CMFCTransitionDlg::OnClose()
+{
+	// TODO:  在此添加消息处理程序代码和/或调用默认值
+	HideWindow();
+	//CDialogEx::OnClose();
 }

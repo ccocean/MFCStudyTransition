@@ -47,6 +47,9 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 
+private:
+	NOTIFYICONDATA m_tnid;
+
 public:
 	int m_d=-1, m_e=-1, m_f=-1;//d表示合成画面，e表示录制模式，f表示导播模式,本地的状态
 	int up_d = -1, up_e = -1, up_f = -1;//服务器状态
@@ -77,8 +80,11 @@ public:
 	BOOL SetOrGetMode(BOOL flag, int sourceNum, int width, int height, int mplayout, int FrameRate, int bitRate);
 	BOOL SendHearBeat(int rcdStatus, int rcdTime, int mpMode, int mpLayout);
 	LRESULT Reconnect(WPARAM wParam, LPARAM lParam);
+	LRESULT OnNotifyMsg(WPARAM wParam, LPARAM lParam);
 	BOOL CheckUpDown(int up, int dn){ return up == dn; };
-	
+	CString GetFilePath();
+	CString m_filePath;
+	void HideWindow();
 	
 	BOOL isDebug = FALSE;
 	BOOL isShowBtn = FALSE;
@@ -102,4 +108,5 @@ public:
 	afx_msg void OnBnClickedButton1();
 	CButton m_checkAuto;
 	afx_msg void OnBnClickedCheckAuto();
+	afx_msg void OnClose();
 };
