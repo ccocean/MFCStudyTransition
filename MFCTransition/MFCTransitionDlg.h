@@ -47,6 +47,9 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 
+	CBrush m_redbrush, m_bluebrush;
+	COLORREF m_redcolor, m_bgcolor, m_textcolor;
+
 private:
 	NOTIFYICONDATA m_tnid;
 	//CTpEdit m_tpedit;
@@ -126,4 +129,5 @@ public:
 	afx_msg void OnBnClickedButtonAuto();
 	afx_msg void OnStnClickedStaticAuto();
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	CEdit m_editIp;
 };

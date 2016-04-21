@@ -70,6 +70,7 @@ void CMFCTransitionDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_LIST1, m_listLog);
 	DDX_Control(pDX, IDC_BUTTON1, m_btnDebug);
 	DDX_Control(pDX, IDC_CHECK_AUTO, m_checkAuto);
+	DDX_Control(pDX, IDC_EDIT_IP, m_editIp);
 }
 
 BEGIN_MESSAGE_MAP(CMFCTransitionDlg, CDialogEx)
@@ -164,7 +165,7 @@ BOOL CMFCTransitionDlg::OnInitDialog()
 			temp.Delete(len - 1, 1);
 			if (cnt == 0)
 			{
-				m_ipServer.SetWindowText(temp);
+				m_editIp.SetWindowText(temp);
 			}
 			if (cnt == 1)
 			{
@@ -188,7 +189,7 @@ BOOL CMFCTransitionDlg::OnInitDialog()
 	m_bmpB_Min.SizeToContent();
 
 	m_bmpB_Enter.SubclassDlgItem(IDC_BUTTON_ENTER, this);
-	m_bmpB_Enter.LoadBitmaps(IDB_BITMAP_ENTER_NORMAL, IDB_BITMAP_ENTER_WORK, 0, 0);
+	m_bmpB_Enter.LoadBitmaps(IDB_BITMAP_ENTER_NORMAL, 0, 0, 0);
 	m_bmpB_Enter.SizeToContent();
 
 	m_bmpB_Auto.SubclassDlgItem(IDC_BUTTON_AUTO, this);
@@ -203,8 +204,13 @@ BOOL CMFCTransitionDlg::OnInitDialog()
 		m_bmpB_Auto.SizeToContent();
 	}
 	
+	m_redcolor = RGB(255, 0, 0);                      // 红色  
+	m_bgcolor = RGB(23, 23, 23);                     // 蓝色  
+	m_textcolor = RGB(255, 255, 255);                 // 文本颜色设置为白色  
+	m_redbrush.CreateSolidBrush(m_redcolor);      // 红色背景色  
+	m_bluebrush.CreateSolidBrush(m_bgcolor);    // 蓝色背景色
 
-
+	
 	//HBITMAP   hBitmap;
 	//hBitmap = LoadBitmap(AfxGetInstanceHandle(),
 	//	MAKEINTRESOURCE(IDB_BITMAP2)); // IDB_BITMAP_TEST为资源图片ID 
@@ -244,17 +250,14 @@ void CMFCTransitionDlg::LoadIMG()
 	//ASSERT(pPic);
 	//pPic->SetBitmap((HBITMAP)img);
 
-	CImage img;
+	/*CImage img;
 	CDC *pDC;
 	CRect rect;
 	CWnd *pWnd;
-	img.Load(m_filePath+_T("\\images\\图片1.bmp"));
-	
-
-	//GetDlgItem(IDC_STATIC_MAIN)->SetWindowPos(NULL, 0, 0, wndRect.right, wndRect.bottom, SWP_NOMOVE);
+	img.Load(m_filePath+_T("\\images\\背景.png"));
 	CPaintDC dc(this);
 	if (!img.IsNull()) img.Destroy();
-	if (!img.IsNull()) img.Draw(dc.m_hDC, 0, 0); 
+	if (!img.IsNull()) img.Draw(dc.m_hDC, 0, 0); */
 
 	//GetDlgItem(IDC_STATIC_MAIN)->SetWindowPos(NULL, 0, 0, wndRect.right, wndRect.bottom, SWP_NOMOVE);
 	/*pWnd = GetDlgItem(IDC_STATIC_MAIN);
@@ -319,13 +322,12 @@ void CMFCTransitionDlg::OnPaint()
 	else
 	{
 		CImage img;
-		//GetDlgItem(IDC_STATIC_MAIN)->SetWindowPos(NULL, 0, 0, wndRect.right, wndRect.bottom, SWP_NOMOVE);
 		CPaintDC dc(this);
 		if (!img.IsNull()) img.Destroy();
-		img.Load(m_filePath + _T("\\images\\背景.png"));
+		//img.Load(m_filePath + _T("\\images\\背景.png"));
+		img.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_BG);
 		if (!img.IsNull()) img.Draw(dc.m_hDC, 0, 0);
-
-		CRect rc;
+		
 
 		CDialogEx::OnPaint();
 	}
@@ -632,9 +634,10 @@ BOOL CMFCTransitionDlg::PreTranslateMessage(MSG* pMsg)
 void CMFCTransitionDlg::OnBnClickedButtonConnect()
 {
 	// TODO:  在此添加控件通知处理程序代码
-	BYTE nf1, nf2, nf3, nf4;
-	m_ipServer.GetAddress(nf1, nf2, nf3, nf4);
-	m_ipStr.Format(_T("%d.%d.%d.%d"), nf1, nf2, nf3, nf4);
+	//BYTE nf1, nf2, nf3, nf4;
+	//m_ipServer.GetAddress(nf1, nf2, nf3, nf4);
+	//m_ipStr.Format(_T("%d.%d.%d.%d"), nf1, nf2, nf3, nf4);
+	m_editIp.GetWindowText(m_ipStr);
 
 	if (m_connet != TRUE)
 	{
@@ -910,8 +913,8 @@ LRESULT CMFCTransitionDlg::ParseSerialPack(WPARAM wParam, LPARAM lParam)
 			UpdateLog(_T("重复设置！"));
 			return FALSE;
 		}
-		//if (up_f==1)//1为自动模式
-		//	SetManageMode(2);//2位手动模式
+		if (up_f==1)//1为自动模式
+			SetManageMode(2);//2位手动模式
 		SetOrGetMode(TRUE, 0, 0, 0, mode, 0, 0);
 		
 		temp = "串口：<--更新电影模式-->";
@@ -975,7 +978,7 @@ void CMFCTransitionDlg::OnAPICommNotify(void)
 			ch2 = WorkBuffer[2] & 0x0f;
 			if (ch1 == D)
 			{
-				if (0 <= ch2 &&ch2 <= 9)
+				if (0 <= ch2 &&ch2 <= 8)
 				{
 					/*for (int i = 0; i < PROTOCOL_LEN-4; i++)
 					{
@@ -988,7 +991,7 @@ void CMFCTransitionDlg::OnAPICommNotify(void)
 			}
 			if (ch1 == E || ch1 == F)
 			{
-				if (0 <= ch2 && ch2 <= 2)
+				if (0 <= ch2 && ch2 <= 3)
 				{
 					/*for (int i = 0; i < PROTOCOL_LEN-4; i++)
 					{
@@ -1243,20 +1246,36 @@ void CMFCTransitionDlg::OnBnClickedCheckAuto()
 HBRUSH CMFCTransitionDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
 	HBRUSH hbr = CDialogEx::OnCtlColor(pDC, pWnd, nCtlColor);
-	//CFont m_font;
+	CFont m_font;
 	// TODO:  在此更改 DC 的任何特性
-	//m_font.CreatePointFont(600, _T("微软雅黑"));
+	
 	if (pWnd->GetDlgCtrlID() == IDC_STATIC_SERVER || 
 		pWnd->GetDlgCtrlID() == IDC_STATIC_COM || 
 		pWnd->GetDlgCtrlID() == IDC_STATIC_BAUD ||
 		pWnd->GetDlgCtrlID() == IDC_STATIC_AUTO)
 	{
-		//pDC->SelectObject(&m_font);       //设置字体 
+		m_font.CreatePointFont(100, _T("微软雅黑"));
+		pDC->SelectObject(&m_font);       //设置字体 
 		pDC->SetTextColor(RGB(255, 255, 255)); //设置字体颜色
 		pDC->SetBkMode(TRANSPARENT);      //属性设置为透明
 		return (HBRUSH)::GetStockObject(NULL_BRUSH); //不返回画刷
 
 	}
+	if (nCtlColor==CTLCOLOR_EDIT)
+	{
+		if (pWnd->GetDlgCtrlID() == IDC_EDIT_BAUD || pWnd->GetDlgCtrlID() == IDC_EDIT_IP)
+		{
+			m_font.CreatePointFont(90, _T("微软雅黑"));
+			pDC->SelectObject(&m_font);
+			pDC->SetBkColor(m_bgcolor);    // change the background  
+			// color [background colour  
+			// of the text ONLY]  
+			pDC->SetTextColor(m_textcolor); // change the text color  
+			hbr = (HBRUSH)m_bluebrush;
+			return hbr;
+		}
+	}
+
 	//if (((pWnd->GetDlgCtrlID() == IDC_EDIT_BAUD) && (nCtlColor == CTLCOLOR_EDIT))/* || ((pWnd->GetDlgCtrlID() == IDC_EDIT2) && (nCtlColor == CTLCOLOR_EDIT))*/)
 	//{
 	//	COLORREF clr = RGB(255, 0, 0);//此处设置背景颜色  
@@ -1302,10 +1321,13 @@ void CMFCTransitionDlg::OnBnClickedButtonEnter()
 	// TODO:  在此添加控件通知处理程序代码
 	if (!m_connet)
 	{
+		m_bmpB_Enter.SizeToContent();
 		OnBnClickedButtonConnect();
 	}
 	else
 	{
+		m_bmpB_Enter.LoadBitmaps(IDB_BITMAP_ENTER_NORMAL, 0, 0, 0);
+		m_bmpB_Enter.SizeToContent();
 		m_listLog.ResetContent();
 		CloseCom();
 		m_btnCom.SetWindowText(_T("打开串口"));
@@ -1334,6 +1356,7 @@ void CMFCTransitionDlg::OnBnClickedButtonMin()
 void CMFCTransitionDlg::OnBnClickedButtonClose()
 {
 	// TODO:  在此添加控件通知处理程序代码
+	Shell_NotifyIcon(NIM_DELETE, &m_tnid);
 	CDialogEx::OnCancel();
 }
 

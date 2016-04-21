@@ -157,6 +157,7 @@ void ClientSocket::ParseXml(::CMarkup xml)
 		//theApp.m_strServerIP = m_ipStr;
 		this->m_pDlg->m_connet = TRUE;
 		m_pDlg->UpdateLog(_T("Login Success!"));
+		m_pDlg->m_bmpB_Enter.LoadBitmaps(IDB_BITMAP_ENTER_WORK, 0, 0, 0);
 		return;
 	}
 	else if (strCode==HEART_BEAT)
