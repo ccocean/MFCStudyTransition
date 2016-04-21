@@ -133,6 +133,16 @@
     <None Include="res\MFCTransition.rc2" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="..\bin\images\关闭.bmp" />
+    <Image Include="..\bin\images\关闭N.bmp" />
+    <Image Include="..\bin\images\图片1.bmp" />
+    <Image Include="..\bin\images\按下.bmp" />
+    <Image Include="..\bin\images\缩小.bmp" />
+    <Image Include="..\bin\images\缩小N.bmp" />
+    <Image Include="..\bin\images\触发关闭.png" />
+    <Image Include="..\bin\images\重启工作.bmp" />
+    <Image Include="..\bin\images\重启默认.bmp" />
+    <Image Include="..\bin\images\默认.bmp" />
     <Image Include="res\MFCTransition.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

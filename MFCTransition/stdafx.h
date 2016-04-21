@@ -55,4 +55,76 @@
 #endif
 #endif
 
+////CTpEdit对象
+//
+//class CTpEdit : public CEdit
+//{
+//	public:
+//	//m_mousedown用来记录鼠标左键是否按下
+//		BOOL m_mousedown;
+//	protected:
+//	//响应如下的消息
+//		//{{AFX_MSG(CTpEdit)
+//		/*afx_msg BOOL OnEraseBkgnd(CDC* pDC);
+//	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
+//	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+//	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
+//	afx_msg UINT OnGetDlgCode();*/
+//	//}}AFX_MSG
+//		DECLARE_MESSAGE_MAP()
+//
+//		//CTpEdit的消息响应函数如下
+//		//画背景图
+//		BOOL CTpEdit::OnEraseBkgnd(CDC* pDC)
+//		{
+//			//得到Edit控件的外框，即背景区域
+//			RECT updatarect;
+//			GetClientRect(&updatarect);
+//			//画背景，我画的是一个黄色的矩形
+//			CBrush newBrush;
+//			newBrush.CreateSolidBrush(RGB(255, 255, 200));
+//			CBrush * oldBrush = pDC->SelectObject(&newBrush);
+//			pDC->Rectangle(&updatarect);
+//			pDC->SelectObject(oldBrush);
+//			return TRUE;
+//		}
+//
+//		//强迫Edit控件擦除背景，重写字符
+//		UINT CTpEdit::OnGetDlgCode()
+//		{
+//			RedrawWindow(NULL, NULL, RDW_INVALIDATE | RDW_ERASE);
+//			return CEdit::OnGetDlgCode();
+//		}
+//		//记录鼠标左键是否按下
+//		void CTpEdit::OnLButtonDown(UINT nFlags, CPoint point)
+//		{
+//			m_mousedown = TRUE;
+//			SetCapture();
+//			CEdit::OnLButtonDown(nFlags, point);
+//		}
+//
+//		void CTpEdit::OnLButtonUp(UINT nFlags, CPoint point)
+//		{
+//			if (m_mousedown)
+//				ReleaseCapture();
+//			m_mousedown = FALSE;
+//			CEdit::OnLButtonUp(nFlags, point);
+//		}
+//
+//		//如果左键按下并且拖动鼠标就要刷新显示
+//		void CTpEdit::OnMouseMove(UINT nFlags, CPoint point)
+//		{
+//			if (m_mousedown)
+//				RedrawWindow(NULL, NULL, RDW_INVALIDATE | RDW_ERASE);
+//			CEdit::OnMouseMove(nFlags, point);
+//		}
+//		//初始化成员变量
+//		CTpEdit::CTpEdit()
+//		{
+//			m_mousedown = FALSE;
+//		}
+//
+//};
+
+
 

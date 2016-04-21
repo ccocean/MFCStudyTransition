@@ -17,6 +17,8 @@ unsigned int ReadyLength;
 unsigned int BufferLength = 0;
 
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
+#define WIDTH 291
+#define HEIGHT 298
 
 class CAboutDlg : public CDialogEx
 {
@@ -62,7 +64,6 @@ void CMFCTransitionDlg::DoDataExchange(CDataExchange* pDX)
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_COMBO_COM, m_comboCom);
 	DDX_Control(pDX, IDC_BUTTON_COM, m_btnCom);
-	DDX_Control(pDX, IDC_EDIT_BAUD, m_editBaud);
 	DDX_Control(pDX, IDC_BUTTON_CONNECT, m_btnConnect);
 	DDX_Control(pDX, IDC_IPADDRESS_SERVER, m_ipServer);
 	//DDX_Control(pDX, IDC_EDIT1, m_editLog);
@@ -85,6 +86,13 @@ BEGIN_MESSAGE_MAP(CMFCTransitionDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON1, &CMFCTransitionDlg::OnBnClickedButton1)
 	ON_BN_CLICKED(IDC_CHECK_AUTO, &CMFCTransitionDlg::OnBnClickedCheckAuto)
 	ON_WM_CLOSE()
+	ON_WM_CTLCOLOR()
+	ON_BN_CLICKED(IDC_BUTTON_ENTER, &CMFCTransitionDlg::OnBnClickedButtonEnter)
+	ON_BN_CLICKED(IDC_BUTTON_MIN, &CMFCTransitionDlg::OnBnClickedButtonMin)
+	ON_BN_CLICKED(IDC_BUTTON_CLOSE, &CMFCTransitionDlg::OnBnClickedButtonClose)
+	ON_BN_CLICKED(IDC_BUTTON_AUTO, &CMFCTransitionDlg::OnBnClickedButtonAuto)
+	ON_STN_CLICKED(IDC_STATIC_AUTO, &CMFCTransitionDlg::OnStnClickedStaticAuto)
+	ON_WM_LBUTTONDOWN()
 END_MESSAGE_MAP()
 
 
@@ -120,16 +128,16 @@ BOOL CMFCTransitionDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO:  在此添加额外的初始化代码
-	
-	m_editBaud.SetWindowText(_T("9600"));
+	m_filePath = GetFilePath();
+	GetDlgItem(IDC_EDIT_BAUD)->SetWindowText(_T("9600"));
 	m_comboCom.SetCurSel(0);
 	m_spConnect = FALSE;
 	m_connet = FALSE;
+	SetWindowPos(NULL, 0, 0, WIDTH, HEIGHT, SWP_NOMOVE);
 	GetWindowRect(wndRect);
-	SetWindowPos(NULL, 0, 0, wndRect.right, wndRect.bottom - 260, SWP_NOMOVE);
 	m_btnDebug.ShowWindow(isShowBtn);
-
-	m_filePath = GetFilePath();
+	//LoadIMG();
+	
 	CStdioFile myFile;
 	int cnt = 0;
 	int len;
@@ -164,15 +172,112 @@ BOOL CMFCTransitionDlg::OnInitDialog()
 			}
 			if (cnt == 2)
 			{
-				m_checkAuto.SetCheck(_ttoi(temp));
+				m_isAuto = _ttoi(temp);
 			}
 			cnt++;
 		}
 	}
 	myFile.Close();
 	
+	m_bmpB_Close.SubclassDlgItem(IDC_BUTTON_CLOSE, this);
+	m_bmpB_Close.LoadBitmaps(IDB_BITMAP_CLOSE_NORMAL, IDB_BITMAP_CLOSE_WORK, 0, 0);
+	m_bmpB_Close.SizeToContent();
 
+	m_bmpB_Min.SubclassDlgItem(IDC_BUTTON_MIN, this);
+	m_bmpB_Min.LoadBitmaps(IDB_BITMAP_MIN_NORMAL, IDB_BITMAP_MIN_WORK, 0, 0);
+	m_bmpB_Min.SizeToContent();
+
+	m_bmpB_Enter.SubclassDlgItem(IDC_BUTTON_ENTER, this);
+	m_bmpB_Enter.LoadBitmaps(IDB_BITMAP_ENTER_NORMAL, IDB_BITMAP_ENTER_WORK, 0, 0);
+	m_bmpB_Enter.SizeToContent();
+
+	m_bmpB_Auto.SubclassDlgItem(IDC_BUTTON_AUTO, this);
+	if (m_isAuto)
+	{
+		m_bmpB_Auto.LoadBitmaps(IDB_BITMAP_AUTO_WORK, 0, 0, 0);
+		m_bmpB_Auto.SizeToContent();
+	}
+	else
+	{
+		m_bmpB_Auto.LoadBitmaps(IDB_BITMAP_AUTO_NORMAL, 0, 0, 0);
+		m_bmpB_Auto.SizeToContent();
+	}
+	
+
+
+	//HBITMAP   hBitmap;
+	//hBitmap = LoadBitmap(AfxGetInstanceHandle(),
+	//	MAKEINTRESOURCE(IDB_BITMAP2)); // IDB_BITMAP_TEST为资源图片ID 
+	//((CButton *)GetDlgItem(IDC_BUTTON_CLOSE))->SetBitmap(hBitmap);
+
+	//SetWindowLong(m_hWnd, GWL_HWNDPARENT, NULL);
+	////CRgn m_rgn;
+	//RECT rc;
+	//GetWindowRect(&rc);
+	//m_rgn.CreateRoundRectRgn(rc.left, rc.top, rc.right, rc.bottom, 11, 11);
+	//if (!m_isDbg)
+	//{
+	//	SetWindowRgn(m_rgn, TRUE);//改成圆角对话框
+	//}
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
+}
+
+void CMFCTransitionDlg::LoadIMG()
+{
+	//CStatic*  pPic;
+	//CRect rc;
+	//CImage img;
+	//CString temp = m_filePath;
+	//temp += "images\\背景.png";
+	//HRESULT ret = img.Load(temp); 
+	////img.Draw()
+	////HBITMAP hBitmap;
+	///*CBitmap bitmap;
+	//bitmap.Attach(img.Detach());*/
+	////hBitmap = (HBITMAP)bitmap.GetSafeHandle();
+	////GetDlgItem(IDC_STATIC_MAIN)->SetWindowPos(NULL, 10, 10, 20, 20, SWP_NOMOVE);
+	////hBitmap_main = (HBITMAP)LoadImage(AfxGetInstanceHandle(),temp, IMAGE_BITMAP, wndRect.Width(), wndRect.Height(), LR_LOADFROMFILE);
+	//pPic = (CStatic*)GetDlgItem(IDC_STATIC_MAIN);
+	////HBITMAP hBmp = img.Detach();
+	////pPic->SetBitmap(hBitmap_main);
+	//
+	//ASSERT(pPic);
+	//pPic->SetBitmap((HBITMAP)img);
+
+	CImage img;
+	CDC *pDC;
+	CRect rect;
+	CWnd *pWnd;
+	img.Load(m_filePath+_T("\\images\\图片1.bmp"));
+	
+
+	//GetDlgItem(IDC_STATIC_MAIN)->SetWindowPos(NULL, 0, 0, wndRect.right, wndRect.bottom, SWP_NOMOVE);
+	CPaintDC dc(this);
+	if (!img.IsNull()) img.Destroy();
+	if (!img.IsNull()) img.Draw(dc.m_hDC, 0, 0); 
+
+	//GetDlgItem(IDC_STATIC_MAIN)->SetWindowPos(NULL, 0, 0, wndRect.right, wndRect.bottom, SWP_NOMOVE);
+	/*pWnd = GetDlgItem(IDC_STATIC_MAIN);
+	pDC = pWnd->GetDC();
+	pWnd->GetClientRect(&rect);
+	pDC->SetStretchBltMode(STRETCH_HALFTONE);
+	img.Draw(pDC->m_hDC, rect);
+	ReleaseDC(pDC);
+	img.Destroy();*/
+
+	//img.Load(m_filePath + _T("\\images\\关闭.bmp"));
+	////CRect rect;
+	//GetDlgItem(IDC_STATIC_CLOSE)->SetWindowPos(NULL, wndRect.right-28, 0, 26, 26, SWP_NOMOVE);
+	//pWnd = GetDlgItem(IDC_STATIC_CLOSE);
+	//pDC = pWnd->GetDC();
+	//pWnd->GetClientRect(&rect);
+	//pDC->SetStretchBltMode(STRETCH_HALFTONE);
+	//img.Draw(pDC->m_hDC, rect);
+	//ReleaseDC(pDC);
+	//img.Destroy();
+
+	
+	//CDialogEx::OnPaint();
 }
 
 void CMFCTransitionDlg::OnSysCommand(UINT nID, LPARAM lParam)
@@ -213,6 +318,15 @@ void CMFCTransitionDlg::OnPaint()
 	}
 	else
 	{
+		CImage img;
+		//GetDlgItem(IDC_STATIC_MAIN)->SetWindowPos(NULL, 0, 0, wndRect.right, wndRect.bottom, SWP_NOMOVE);
+		CPaintDC dc(this);
+		if (!img.IsNull()) img.Destroy();
+		img.Load(m_filePath + _T("\\images\\背景.png"));
+		if (!img.IsNull()) img.Draw(dc.m_hDC, 0, 0);
+
+		CRect rc;
+
 		CDialogEx::OnPaint();
 	}
 }
@@ -472,6 +586,9 @@ void CMFCTransitionDlg::UpdateLog(CString str)
 
 BOOL CMFCTransitionDlg::PreTranslateMessage(MSG* pMsg)
 {
+	/*CRect rect;
+	((CIPAddressCtrl *)GetDlgItem(IDC_IPADDRESS_SERVER))->GetClientRect(&rect);
+	InvalidateRect(rect, TRUE);*/
 	if (pMsg->message == WM_KEYDOWN   &&   pMsg->wParam == VK_ESCAPE)
 	{
 		//pMsg->wParam = VK_RETURN;   //将ESC键的消息替换为回车键的消息，这样，按ESC的时候  
@@ -493,7 +610,7 @@ BOOL CMFCTransitionDlg::PreTranslateMessage(MSG* pMsg)
 				{
 					isShowBtn = TRUE;
 					m_btnDebug.ShowWindow(isShowBtn);
-					m_btnDebug.SetWindowText(_T("↓"));
+					m_btnDebug.SetWindowText(_T(">"));
 					//SetWindowPos(NULL, 0, 0, wndRect.right, wndRect.bottom, SWP_NOMOVE);
 				}
 				else
@@ -540,6 +657,7 @@ void CMFCTransitionDlg::OnBnClickedButtonConnect()
 			int nResult;
 			if (CreateLoginXml(xml, nResult))
 			{
+				m_connet = TRUE;
 				//m_editLog.Clear();
 				//m_strServerIP = m_ipStr;
 				m_listLog.ResetContent();
@@ -568,6 +686,7 @@ void CMFCTransitionDlg::OnBnClickedButtonConnect()
 				return;
 				}*/
 				m_btnConnect.SetWindowText(_T("断开"));
+				OnBnClickedButtonCom();
 			}
 		}
 	}
@@ -608,7 +727,7 @@ void CMFCTransitionDlg::OnBnClickedButtonCom()
 
 			CStdioFile myFile;
 			CString temp;
-			isAuto = m_checkAuto.GetCheck();
+			//isAuto = m_checkAuto.GetCheck();
 			temp.Format(_T("%d"),id);
 			BOOL openResult = myFile.Open(m_filePath+_T("connectInfo.txt"), CFile::modeCreate | CFile::modeReadWrite);
 			if (!openResult)
@@ -623,7 +742,7 @@ void CMFCTransitionDlg::OnBnClickedButtonCom()
 				myFile.Write(("\r\n"), 2);
 				myFile.WriteString(temp);
 				myFile.Write(("\r\n"), 2);
-				temp.Format(_T("%d"), isAuto);
+				temp.Format(_T("%d"), m_isAuto);
 				myFile.WriteString(temp);
 				myFile.Write(("\r\n"), 2);
 				myFile.Flush();
@@ -1061,17 +1180,20 @@ BOOL CMFCTransitionDlg::ConfigConnection()
 void CMFCTransitionDlg::OnBnClickedButton1()
 {
 	// TODO:  在此添加控件通知处理程序代码
+	/*CRect rc;
+	this->GetWindowRect(rc);*/
+	
 	if (!isDebug)
 	{
 		isDebug = TRUE;
-		m_btnDebug.SetWindowText(_T("↑"));
-		SetWindowPos(NULL, 0, 0, wndRect.right, wndRect.bottom, SWP_NOMOVE);
+		m_btnDebug.SetWindowText(_T("<"));
+		this->SetWindowPos(NULL, 0, 0, wndRect.right + 320, wndRect.bottom, SWP_NOMOVE);
 	}
 	else
 	{
 		isDebug = FALSE;
-		m_btnDebug.SetWindowText(_T("↓"));
-		SetWindowPos(NULL, 0, 0, wndRect.right, wndRect.bottom - 260, SWP_NOMOVE);
+		m_btnDebug.SetWindowText(_T(">"));
+		SetWindowPos(NULL, 0, 0, wndRect.right, wndRect.bottom, SWP_NOMOVE);
 	}
 	//SetWindowPos(NULL, 0, 0, wndRect.right, wndRect.bottom, SWP_NOMOVE);
 	//SetWindowPos(NULL, 0, 0, wndRect.right, wndRect.bottom - 260, SWP_NOMOVE);
@@ -1110,9 +1232,168 @@ void CMFCTransitionDlg::OnBnClickedCheckAuto()
 }
 
 
-void CMFCTransitionDlg::OnClose()
+//void CMFCTransitionDlg::OnClose()
+//{
+//	// TODO:  在此添加消息处理程序代码和/或调用默认值
+//	
+//	CDialogEx::OnClose();
+//}
+
+
+HBRUSH CMFCTransitionDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
+{
+	HBRUSH hbr = CDialogEx::OnCtlColor(pDC, pWnd, nCtlColor);
+	//CFont m_font;
+	// TODO:  在此更改 DC 的任何特性
+	//m_font.CreatePointFont(600, _T("微软雅黑"));
+	if (pWnd->GetDlgCtrlID() == IDC_STATIC_SERVER || 
+		pWnd->GetDlgCtrlID() == IDC_STATIC_COM || 
+		pWnd->GetDlgCtrlID() == IDC_STATIC_BAUD ||
+		pWnd->GetDlgCtrlID() == IDC_STATIC_AUTO)
+	{
+		//pDC->SelectObject(&m_font);       //设置字体 
+		pDC->SetTextColor(RGB(255, 255, 255)); //设置字体颜色
+		pDC->SetBkMode(TRANSPARENT);      //属性设置为透明
+		return (HBRUSH)::GetStockObject(NULL_BRUSH); //不返回画刷
+
+	}
+	//if (((pWnd->GetDlgCtrlID() == IDC_EDIT_BAUD) && (nCtlColor == CTLCOLOR_EDIT))/* || ((pWnd->GetDlgCtrlID() == IDC_EDIT2) && (nCtlColor == CTLCOLOR_EDIT))*/)
+	//{
+	//	COLORREF clr = RGB(255, 0, 0);//此处设置背景颜色  
+	//	pDC->SetTextColor(RGB(255,255,255));//设置字体颜色  
+	//	//pDC->SetBkColor(clr);
+	//	pDC->SetBkMode(TRANSPARENT);
+	//	//m_redbrush = ::CreateSolidBrush(clr);
+	//	//return m_redbrush;
+	//	//return NULL;
+	//}
+
+	//if ((nCtlColor == CTLCOLOR_EDIT) && (pWnd->GetDlgCtrlID() == IDC_STATIC_BAUD))
+	//{
+	//	pDC->SetBkMode(TRANSPARENT); //设置背景透明，这样，输出字符的时候就
+	//	//是所谓的空心字，而不是有白的底色
+	//	pDC->SetTextColor(RGB(255, 0, 0)); //改变字体的颜色
+	//	return HBRUSH(GetStockObject(HOLLOW_BRUSH));
+	//}
+	//if (pWnd->GetDlgCtrlID() == IDC_BUTTON_CLOSE /*||
+	//	pWnd->GetDlgCtrlID() == IDC_RADIO_ANONYMOUS ||
+	//	pWnd->GetDlgCtrlID() == IDC_CHECK_SELFSELECT*/)
+	//{
+	//	
+	//	pDC->SetBkMode(TRANSPARENT);
+
+	//	CRect rc;
+	//	pWnd->GetWindowRect(&rc);
+	//	ScreenToClient(&rc);
+
+	//	CDC* dc = GetDC();
+	//	pDC->BitBlt(0, 0, rc.Width(), rc.Height(), dc, rc.left, rc.top, SRCCOPY);    //把父窗口背景先画到按钮上
+	//	ReleaseDC(dc);
+	//	pDC->SetTextColor(RGB(255, 255, 255)); //设置字体颜色
+	//	return (HBRUSH) ::GetStockObject(NULL_BRUSH);
+	//}
+	// TODO:  如果默认的不是所需画笔，则返回另一个画笔
+	return hbr;
+}
+
+
+void CMFCTransitionDlg::OnBnClickedButtonEnter()
+{
+	// TODO:  在此添加控件通知处理程序代码
+	if (!m_connet)
+	{
+		OnBnClickedButtonConnect();
+	}
+	else
+	{
+		m_listLog.ResetContent();
+		CloseCom();
+		m_btnCom.SetWindowText(_T("打开串口"));
+		m_spConnect = FALSE;
+		m_comboCom.EnableWindow(TRUE);
+		UpdateLog(_T("串口已关闭！"));
+
+		m_connet = FALSE;
+		m_pClient->Close();
+		delete m_pClient;
+		m_pClient = NULL;
+		m_btnConnect.SetWindowText(_T("连接"));
+		UpdateLog(_T("Disconnected!!!"));
+		KillTimer(1);
+	}
+}
+
+
+void CMFCTransitionDlg::OnBnClickedButtonMin()
+{
+	// TODO:  在此添加控件通知处理程序代码
+	HideWindow();
+}
+
+
+void CMFCTransitionDlg::OnBnClickedButtonClose()
+{
+	// TODO:  在此添加控件通知处理程序代码
+	CDialogEx::OnCancel();
+}
+
+
+void CMFCTransitionDlg::OnBnClickedButtonAuto()
+{
+	// TODO:  在此添加控件通知处理程序代码
+	HKEY hKey;
+
+	CString strRegPath = _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run");//找到系统的启动项
+
+	if (!m_isAuto)
+	{
+		if (RegOpenKeyEx(HKEY_CURRENT_USER, strRegPath, 0, KEY_ALL_ACCESS, &hKey) == ERROR_SUCCESS)
+		{
+			TCHAR szModule[MAX_PATH];
+			GetModuleFileName(NULL, szModule, MAX_PATH);//获取本程序自身路径
+			RegSetValueEx(hKey, _T("Transition"), 0, REG_SZ, (LPBYTE)szModule, (lstrlen(szModule) + 1)*sizeof(TCHAR));
+			RegCloseKey(hKey);
+			m_isAuto = 1;
+			m_bmpB_Auto.LoadBitmaps(IDB_BITMAP_AUTO_WORK, 0, 0, 0);
+			m_bmpB_Auto.SizeToContent();
+		}
+		else
+		{
+			UpdateLog(_T("系统参数错误，不能随系统自启"));
+		}
+	}
+	else
+	{
+		if (RegOpenKeyEx(HKEY_CURRENT_USER, strRegPath, 0, KEY_ALL_ACCESS, &hKey) == ERROR_SUCCESS)
+		{
+			RegDeleteValue(hKey, _T("Transition"));
+			RegCloseKey(hKey);
+			m_isAuto = 0;
+			m_bmpB_Auto.LoadBitmaps(IDB_BITMAP_AUTO_NORMAL, 0, 0, 0);
+			m_bmpB_Auto.SizeToContent();
+		}
+	}
+}
+
+
+void CMFCTransitionDlg::OnStnClickedStaticAuto()
+{
+	// TODO:  在此添加控件通知处理程序代码
+	/*OnBnClickedButtonAuto();
+	CRect rc;
+	GetDlgItem(IDC_BUTTON_AUTO)->GetWindowRect(rc);
+	InvalidateRect(rc,TRUE);*/
+	return;
+}
+
+
+void CMFCTransitionDlg::OnLButtonDown(UINT nFlags, CPoint point)
 {
 	// TODO:  在此添加消息处理程序代码和/或调用默认值
-	HideWindow();
-	//CDialogEx::OnClose();
+	//宽220，高40
+	if (0 < point.x&&point.x <= 220 && 0 <= point.y&&point.y <= 40)
+	{
+		SendMessage(WM_SYSCOMMAND, 0xF012, 0);
+	}
+	CDialogEx::OnLButtonDown(nFlags, point);
 }
