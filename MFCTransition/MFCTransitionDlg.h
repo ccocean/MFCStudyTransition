@@ -76,6 +76,7 @@ public:
 	long WriteComm(unsigned char *pBuf, long dwlength);
 	LRESULT ParseSerialPack(WPARAM wParam, LPARAM lParam);
 	LRESULT Send2SerialPort(WPARAM wParam, LPARAM lParam);
+	void FindCommPort();
 
 	int ParseXmlFile();
 	BOOL CreateLoginXml(::CMarkup& xml, int &nRes);
@@ -130,4 +131,5 @@ public:
 	afx_msg void OnStnClickedStaticAuto();
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	CEdit m_editIp;
+	CListBox m_list2;
 };

@@ -71,6 +71,7 @@ void CMFCTransitionDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_BUTTON1, m_btnDebug);
 	DDX_Control(pDX, IDC_CHECK_AUTO, m_checkAuto);
 	DDX_Control(pDX, IDC_EDIT_IP, m_editIp);
+	DDX_Control(pDX, IDC_LIST2, m_list2);
 }
 
 BEGIN_MESSAGE_MAP(CMFCTransitionDlg, CDialogEx)
@@ -138,7 +139,8 @@ BOOL CMFCTransitionDlg::OnInitDialog()
 	GetWindowRect(wndRect);
 	m_btnDebug.ShowWindow(isShowBtn);
 	//LoadIMG();
-	
+
+	FindCommPort();
 	CStdioFile myFile;
 	int cnt = 0;
 	int len;
@@ -226,6 +228,50 @@ BOOL CMFCTransitionDlg::OnInitDialog()
 	//	SetWindowRgn(m_rgn, TRUE);//改成圆角对话框
 	//}
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
+}
+
+void CMFCTransitionDlg::FindCommPort()
+{
+	CString str;
+	HKEY hKey;
+	if (::RegOpenKeyEx(HKEY_LOCAL_MACHINE,
+		_T("Hardware\\DeviceMap\\SerialComm"),
+		NULL,
+		KEY_READ,
+		&hKey)==ERROR_SUCCESS)
+	{
+		int i = 0;
+		char portName[25], commName[25];
+		DWORD dwLong, dwSize;
+		while (1)
+		{
+			dwLong = dwSize = sizeof(portName);
+			if (::RegEnumValueA(hKey,
+				i,
+				portName,
+				&dwLong,
+				NULL,
+				NULL,
+				(PUCHAR)commName,
+				&dwSize) == ERROR_NO_MORE_ITEMS) // 枚举串口
+				break;
+			str.Format(_T("%S"),commName);
+			m_comboCom.AddString(str); // commName就是串口名字
+			i++;
+		}
+		if (m_comboCom.GetCount() == 0)
+		{
+			AfxMessageBox(_T("在HKEY_LOCAL_MACHINE:Hardware\\DeviceMap\\SerialComm里找不到串口!!!"));
+		}
+		RegCloseKey(hKey);
+	}
+
+	/*HANDLE tmpCom;
+	CString str;
+	for (int i = 0; i < 16;i++)
+	{
+		str.Format()
+	}*/
 }
 
 void CMFCTransitionDlg::LoadIMG()
@@ -1252,7 +1298,8 @@ HBRUSH CMFCTransitionDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 	if (pWnd->GetDlgCtrlID() == IDC_STATIC_SERVER || 
 		pWnd->GetDlgCtrlID() == IDC_STATIC_COM || 
 		pWnd->GetDlgCtrlID() == IDC_STATIC_BAUD ||
-		pWnd->GetDlgCtrlID() == IDC_STATIC_AUTO)
+		pWnd->GetDlgCtrlID() == IDC_STATIC_AUTO ||
+		pWnd->GetDlgCtrlID() == IDC_LIST2)
 	{
 		m_font.CreatePointFont(100, _T("微软雅黑"));
 		pDC->SelectObject(&m_font);       //设置字体 
