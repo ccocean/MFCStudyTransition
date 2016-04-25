@@ -57,6 +57,21 @@
     <ClInclude Include="DebugDlg.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="ComboboxListboxDlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="skinscrollwnd.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="skinscrollbar.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ComboboxEx.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MyListBox.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MFCTransition.cpp">
@@ -78,6 +93,21 @@
       <Filter>UIUtil</Filter>
     </ClCompile>
     <ClCompile Include="DebugDlg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ComboboxListboxDlg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="skinscrollwnd.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="skinscrollbar.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ComboboxEx.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MyListBox.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -120,6 +150,15 @@
       <Filter>资源文件</Filter>
     </Image>
     <Image Include="..\bin\images\背景.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\bitmap1.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\combobox150x27.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\scrollbar.bmp">
       <Filter>资源文件</Filter>
     </Image>
   </ItemGroup>

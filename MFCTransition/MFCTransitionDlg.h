@@ -8,6 +8,7 @@
 #include "Markup.h"
 #include "ClientSocket.h"
 #include "afxcmn.h"
+#include "ComboboxEx.h"
 
 #define BAUDRATE 9600
 #define SERVER_PORT 21005
@@ -132,4 +133,5 @@ public:
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	CEdit m_editIp;
 	CListBox m_list2;
+	CComboboxEx m_combobox;
 };

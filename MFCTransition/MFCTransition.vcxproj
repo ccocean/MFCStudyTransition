@@ -104,22 +104,32 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ClientSocket.h" />
+    <ClInclude Include="ComboboxEx.h" />
+    <ClInclude Include="ComboboxListboxDlg.h" />
     <ClInclude Include="DebugDlg.h" />
     <ClInclude Include="FTPTypeDef.h" />
     <ClInclude Include="Markup.h" />
     <ClInclude Include="MFCTransition.h" />
     <ClInclude Include="MFCTransitionDlg.h" />
+    <ClInclude Include="MyListBox.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="skinscrollbar.h" />
+    <ClInclude Include="skinscrollwnd.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="UIUtil.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ClientSocket.cpp" />
+    <ClCompile Include="ComboboxEx.cpp" />
+    <ClCompile Include="ComboboxListboxDlg.cpp" />
     <ClCompile Include="DebugDlg.cpp" />
     <ClCompile Include="Markup.cpp" />
     <ClCompile Include="MFCTransition.cpp" />
     <ClCompile Include="MFCTransitionDlg.cpp" />
+    <ClCompile Include="MyListBox.cpp" />
+    <ClCompile Include="skinscrollbar.cpp" />
+    <ClCompile Include="skinscrollwnd.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -142,7 +152,10 @@
     <Image Include="..\bin\images\重启工作.bmp" />
     <Image Include="..\bin\images\重启默认.bmp" />
     <Image Include="..\bin\images\默认.bmp" />
+    <Image Include="res\bitmap1.bmp" />
+    <Image Include="res\combobox150x27.bmp" />
     <Image Include="res\MFCTransition.ico" />
+    <Image Include="res\scrollbar.bmp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

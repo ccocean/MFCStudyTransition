@@ -72,6 +72,7 @@ void CMFCTransitionDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_CHECK_AUTO, m_checkAuto);
 	DDX_Control(pDX, IDC_EDIT_IP, m_editIp);
 	DDX_Control(pDX, IDC_LIST2, m_list2);
+	DDX_Control(pDX, IDC_IDC_CBSTATIC, m_combobox);
 }
 
 BEGIN_MESSAGE_MAP(CMFCTransitionDlg, CDialogEx)
@@ -131,6 +132,10 @@ BOOL CMFCTransitionDlg::OnInitDialog()
 
 	// TODO:  在此添加额外的初始化代码
 	m_filePath = GetFilePath();
+	/*CFont* pFont = new CFont;
+	pFont->CreatePointFont(20 * 10, _T("微软雅黑"));
+	GetDlgItem(IDC_EDIT_BAUD)->SetFont(pFont);*/
+	//GetDlgItem(IDC_STATIC_BAUD2)->SetWindowText(_T("9600"));
 	GetDlgItem(IDC_EDIT_BAUD)->SetWindowText(_T("9600"));
 	m_comboCom.SetCurSel(0);
 	m_spConnect = FALSE;
@@ -171,7 +176,7 @@ BOOL CMFCTransitionDlg::OnInitDialog()
 			}
 			if (cnt == 1)
 			{
-				m_comboCom.SetCurSel(_ttoi(temp));
+				m_combobox.SetCurSel(_ttoi(temp));
 			}
 			if (cnt == 2)
 			{
@@ -212,7 +217,16 @@ BOOL CMFCTransitionDlg::OnInitDialog()
 	m_redbrush.CreateSolidBrush(m_redcolor);      // 红色背景色  
 	m_bluebrush.CreateSolidBrush(m_bgcolor);    // 蓝色背景色
 
-	
+	/*m_combobox.SetWindowSize(3);
+	m_combobox.AddString(_T("你好"));
+	m_combobox.AddString(_T("我很好"));
+	m_combobox.AddString(_T("Visual Studio"));
+	m_combobox.AddString(_T("mycombobox"));
+	m_combobox.AddString(_T("mycombobox"));
+	m_combobox.AddString(_T("mycombobox"));
+	m_combobox.AddString(_T("mycombobox"));
+	m_combobox.AddString(_T("mycombobox"));
+	m_combobox.InsertString(1, _T("235465"));*/
 	//HBITMAP   hBitmap;
 	//hBitmap = LoadBitmap(AfxGetInstanceHandle(),
 	//	MAKEINTRESOURCE(IDB_BITMAP2)); // IDB_BITMAP_TEST为资源图片ID 
@@ -233,7 +247,9 @@ BOOL CMFCTransitionDlg::OnInitDialog()
 void CMFCTransitionDlg::FindCommPort()
 {
 	CString str;
+	CString portName[16];
 	HKEY hKey;
+	int cnt = 0;
 	if (::RegOpenKeyEx(HKEY_LOCAL_MACHINE,
 		_T("Hardware\\DeviceMap\\SerialComm"),
 		NULL,
@@ -255,13 +271,41 @@ void CMFCTransitionDlg::FindCommPort()
 				(PUCHAR)commName,
 				&dwSize) == ERROR_NO_MORE_ITEMS) // 枚举串口
 				break;
-			str.Format(_T("%S"),commName);
-			m_comboCom.AddString(str); // commName就是串口名字
+			//str.Format(_T("%S"), commName);
+			//m_combobox.AddString(str); // commName就是串口名字
+			cnt++;
 			i++;
 		}
-		if (m_comboCom.GetCount() == 0)
+		//m_combobox.SetWindowSize(m_combobox.GetCount());
+		/*if (m_combobox.GetCount() == 0)
 		{
-			AfxMessageBox(_T("在HKEY_LOCAL_MACHINE:Hardware\\DeviceMap\\SerialComm里找不到串口!!!"));
+		AfxMessageBox(_T("无法在系统中找到有效串口！"));
+		}*/
+		if (cnt==0)
+		{
+			AfxMessageBox(_T("无法在系统中找到有效串口！"));
+		}
+		else
+		{
+			i = 0;
+			m_combobox.SetWindowSize(cnt);
+			while (1)
+			{
+				dwLong = dwSize = sizeof(portName);
+				if (::RegEnumValueA(hKey,
+					i,
+					portName,
+					&dwLong,
+					NULL,
+					NULL,
+					(PUCHAR)commName,
+					&dwSize) == ERROR_NO_MORE_ITEMS) // 枚举串口
+					break;
+				str.Format(_T("%S"), commName);
+				m_combobox.AddString(str); // commName就是串口名字
+				//cnt++;
+				i++;
+			}
 		}
 		RegCloseKey(hKey);
 	}
@@ -589,8 +633,8 @@ void CMFCTransitionDlg::OnTimer(UINT_PTR nIDEvent)
 		unsigned char val;
 		int a = 8, b = 2, c = 2;
 		val = (a << 4) + (b << 2) + (c);
-		unsigned char *sendBuf = new unsigned char[5];
-		memcpy(sendBuf, "@#_#@", 5);
+		unsigned char *sendBuf = new unsigned char[PROTOCOL_LEN];
+		memcpy(sendBuf, "@#_#@", PROTOCOL_LEN);
 		memcpy(sendBuf + 2, &val, 1);
 		WriteComm(sendBuf, PROTOCOL_LEN);
 		break;
@@ -1299,7 +1343,7 @@ HBRUSH CMFCTransitionDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 		pWnd->GetDlgCtrlID() == IDC_STATIC_COM || 
 		pWnd->GetDlgCtrlID() == IDC_STATIC_BAUD ||
 		pWnd->GetDlgCtrlID() == IDC_STATIC_AUTO ||
-		pWnd->GetDlgCtrlID() == IDC_LIST2)
+		pWnd->GetDlgCtrlID() == IDC_IDC_CBSTATIC)
 	{
 		m_font.CreatePointFont(100, _T("微软雅黑"));
 		pDC->SelectObject(&m_font);       //设置字体 
@@ -1312,7 +1356,7 @@ HBRUSH CMFCTransitionDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 	{
 		if (pWnd->GetDlgCtrlID() == IDC_EDIT_BAUD || pWnd->GetDlgCtrlID() == IDC_EDIT_IP)
 		{
-			m_font.CreatePointFont(90, _T("微软雅黑"));
+			m_font.CreatePointFont(92, _T("微软雅黑"));
 			pDC->SelectObject(&m_font);
 			pDC->SetBkColor(m_bgcolor);    // change the background  
 			// color [background colour  
@@ -1341,7 +1385,7 @@ HBRUSH CMFCTransitionDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 	//	pDC->SetTextColor(RGB(255, 0, 0)); //改变字体的颜色
 	//	return HBRUSH(GetStockObject(HOLLOW_BRUSH));
 	//}
-	//if (pWnd->GetDlgCtrlID() == IDC_BUTTON_CLOSE /*||
+	//if (pWnd->GetDlgCtrlID() == IDC_COMBO_COM /*||
 	//	pWnd->GetDlgCtrlID() == IDC_RADIO_ANONYMOUS ||
 	//	pWnd->GetDlgCtrlID() == IDC_CHECK_SELFSELECT*/)
 	//{
@@ -1366,6 +1410,8 @@ HBRUSH CMFCTransitionDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 void CMFCTransitionDlg::OnBnClickedButtonEnter()
 {
 	// TODO:  在此添加控件通知处理程序代码
+	/*CString str;
+	m_combobox.GetWindowText(str);*/
 	if (!m_connet)
 	{
 		m_bmpB_Enter.SizeToContent();
