@@ -60,7 +60,7 @@ public:
 	int up_d = -1, up_e = -1, up_f = -1;//服务器状态
 	int dn_d = -1, dn_e = -1, dn_f = -1;//按键状态
 	UCHAR m_val;
-	char isSet = -1;
+	char isSet = -2;
 	BOOL isUpdata = FALSE;
 
 	BOOL m_connet, m_spConnect;  //m_connect代表网络是否连接；m_spConnect代表串口是否连接

@@ -172,6 +172,7 @@ void ClientSocket::ParseXml(::CMarkup xml)
 			{
 				record = m_xml.GetChildData();
 				m_pDlg->up_e = _ttoi(record);
+				//m_pDlg->isSet = E;
 				//if (!m_pDlg->CheckUpDown(m_pDlg->up_e, m_pDlg->dn_e))
 				//{
 				//	//m_pDlg->m_e = _ttoi(record);
@@ -182,6 +183,7 @@ void ClientSocket::ParseXml(::CMarkup xml)
 			{
 				model = m_xml.GetChildData();
 				m_pDlg->up_f = _ttoi(model);
+				//m_pDlg->isSet = D;
 				//if (!m_pDlg->CheckUpDown(m_pDlg->up_f, m_pDlg->dn_f))
 				//{
 				//	//m_pDlg->m_f = _ttoi(model);
@@ -192,6 +194,7 @@ void ClientSocket::ParseXml(::CMarkup xml)
 			{
 				layout = m_xml.GetChildData();
 				m_pDlg->up_d = _ttoi(layout);
+				//m_pDlg->isSet = F;
 				//if (!m_pDlg->CheckUpDown(m_pDlg->up_d, m_pDlg->dn_d))
 				//{
 				//	//m_pDlg->m_d = _ttoi(layout);

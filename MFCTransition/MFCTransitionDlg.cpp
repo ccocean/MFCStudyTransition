@@ -919,6 +919,12 @@ void CMFCTransitionDlg::HideWindow()
 
 LRESULT CMFCTransitionDlg::Send2SerialPort(WPARAM wParam, LPARAM lParam)
 {
+	if (m_d != up_d&&m_d > 0)
+		isSet = D;
+	if (m_e != up_e&&m_e > 0)
+		isSet = E;
+	if (m_f != up_f&&m_f > 0)
+		isSet = F;
 	m_d = up_d; m_e = up_e; m_f = up_f;//更新本地状态
 	dn_d = m_d; dn_e = m_e; dn_f = m_f;//更新下机位状态
 	unsigned char val;
@@ -930,16 +936,19 @@ LRESULT CMFCTransitionDlg::Send2SerialPort(WPARAM wParam, LPARAM lParam)
 	if (isSet==E)
 	{
 		UpdateLog(_T("服务器:录制状态更新！"));
+		isSet = -1;
 	}
 	else if (isSet==F)
 	{
 		UpdateLog(_T("服务器:导播状态更新！"));
+		isSet = -1;
 	}
 	else if (isSet == D)
 	{
 		UpdateLog(_T("服务器:电影模式更新！"));
+		isSet = -1;
 	}
-	else if (isSet == -1)
+	else if (isSet == -2)
 	{
 		UpdateLog(_T("服务器:启动同步中..."));
 	}
@@ -977,8 +986,9 @@ LRESULT CMFCTransitionDlg::ParseSerialPack(WPARAM wParam, LPARAM lParam)
 		}
 		SetRecordStatus(rcdType, _T(""), _T(""), _T(""), _T(""));
 		
-		temp = "串口：<--更新录制模式-->";
+		temp = "串口:<--更新录制模式";
 		temp += ReadyBuffer;
+		temp += "-->";
 		isSet = E;
 		UpdateLog(temp);
 		return TRUE;
@@ -996,8 +1006,9 @@ LRESULT CMFCTransitionDlg::ParseSerialPack(WPARAM wParam, LPARAM lParam)
 		}
 		SetManageMode(mngType);
 		
-		temp = "串口：<--更新导播模式-->";
+		temp = "串口:<--更新导播模式";
 		temp += ReadyBuffer;
+		temp += "-->";
 		isSet = F;
 		UpdateLog(temp);
 		return TRUE;
@@ -1017,8 +1028,9 @@ LRESULT CMFCTransitionDlg::ParseSerialPack(WPARAM wParam, LPARAM lParam)
 			SetManageMode(2);//2位手动模式
 		SetOrGetMode(TRUE, 0, 0, 0, mode, 0, 0);
 		
-		temp = "串口：<--更新电影模式-->";
+		temp = "串口:<--更新电影模式";
 		temp += ReadyBuffer;
+		temp += "-->";
 		isSet = D;
 		UpdateLog(temp);
 		return TRUE;
