@@ -158,6 +158,7 @@ void ClientSocket::ParseXml(::CMarkup xml)
 		this->m_pDlg->m_connet = TRUE;
 		m_pDlg->UpdateLog(_T("Login Success!"));
 		m_pDlg->m_bmpB_Enter.LoadBitmaps(IDB_BITMAP_ENTER_WORK, 0, 0, 0);
+		m_pDlg->m_bmpB_Enter.SizeToContent();
 		return;
 	}
 	else if (strCode==HEART_BEAT)

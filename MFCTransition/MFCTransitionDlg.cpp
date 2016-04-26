@@ -524,12 +524,15 @@ LRESULT CMFCTransitionDlg::Reconnect(WPARAM wParam, LPARAM lParam)
 {
 	m_pClient->Close();
 	m_connet = FALSE;
+	CloseCom();
 	UpdateLog(_T("服务器断开连接，正在重连..."));
 	KillTimer(1);
+	m_bmpB_Enter.LoadBitmaps(IDB_BITMAP_ENTER_NORMAL, 0, 0, 0);
+	m_bmpB_Enter.SizeToContent();
 	//delete m_pClient;
 	//m_pClient = NULL;
 	//m_pClient = new ClientSocket;
-	
+	m_pClient->SetParam(this);
 	if (!m_pClient->Create())
 	{
 		AfxMessageBox(_T("创建套接字失败"));
@@ -543,15 +546,17 @@ LRESULT CMFCTransitionDlg::Reconnect(WPARAM wParam, LPARAM lParam)
 	}
 	else
 	{
-		m_pClient->SetParam(this);
-		::CMarkup xml;
-		int nResult;
-		if (CreateLoginXml(xml, nResult))
-		{
-			//SetTimer(1, 3000, NULL);
-			m_listLog.ResetContent();
-			m_btnConnect.SetWindowText(_T("断开"));
-		}
+		//m_pClient->SetParam(this);
+		//::CMarkup xml;
+		//int nResult;
+		//if (CreateLoginXml(xml, nResult))
+		//{
+		//	//SetTimer(1, 3000, NULL);
+		//	m_listLog.ResetContent();
+		//	m_btnConnect.SetWindowText(_T("断开"));
+		//}
+		//OnBnClickedButtonConnect();
+		OnBnClickedButtonEnter();
 		return TRUE;
 	}
 	
@@ -624,6 +629,7 @@ void CMFCTransitionDlg::OnTimer(UINT_PTR nIDEvent)
 		if (nRes)
 		{
 			UpdateLog(_T("客户端:发送心跳!"));
+			m_overTime = 0;
 		}
 		else
 		{
@@ -1436,7 +1442,6 @@ void CMFCTransitionDlg::OnBnClickedButtonEnter()
 	m_combobox.GetWindowText(str);*/
 	if (!m_connet)
 	{
-		m_bmpB_Enter.SizeToContent();
 		OnBnClickedButtonConnect();
 	}
 	else
@@ -1452,8 +1457,8 @@ void CMFCTransitionDlg::OnBnClickedButtonEnter()
 
 		m_connet = FALSE;
 		m_pClient->Close();
-		delete m_pClient;
-		m_pClient = NULL;
+		//delete m_pClient;
+		//m_pClient = NULL;
 		m_btnConnect.SetWindowText(_T("连接"));
 		UpdateLog(_T("Disconnected!!!"));
 		KillTimer(1);
