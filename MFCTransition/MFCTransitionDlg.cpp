@@ -136,6 +136,7 @@ BOOL CMFCTransitionDlg::OnInitDialog()
 	pFont->CreatePointFont(20 * 10, _T("微软雅黑"));
 	GetDlgItem(IDC_EDIT_BAUD)->SetFont(pFont);*/
 	//GetDlgItem(IDC_STATIC_BAUD2)->SetWindowText(_T("9600"));
+	GetDlgItem(IDC_IDC_CBSTATIC)->SetWindowText(_T(""));
 	GetDlgItem(IDC_EDIT_BAUD)->SetWindowText(_T("9600"));
 	m_comboCom.SetCurSel(0);
 	m_spConnect = FALSE;
@@ -249,7 +250,7 @@ void CMFCTransitionDlg::FindCommPort()
 	CString str;
 	CString portName[16];
 	HKEY hKey;
-	int cnt = 0;
+	//int cnt = 0;
 	if (::RegOpenKeyEx(HKEY_LOCAL_MACHINE,
 		_T("Hardware\\DeviceMap\\SerialComm"),
 		NULL,
@@ -271,9 +272,9 @@ void CMFCTransitionDlg::FindCommPort()
 				(PUCHAR)commName,
 				&dwSize) == ERROR_NO_MORE_ITEMS) // 枚举串口
 				break;
-			//str.Format(_T("%S"), commName);
-			//m_combobox.AddString(str); // commName就是串口名字
-			cnt++;
+			str.Format(_T("%S"), commName);
+			m_combobox.AddString(str); // commName就是串口名字
+			//cnt++;
 			i++;
 		}
 		//m_combobox.SetWindowSize(m_combobox.GetCount());
@@ -281,32 +282,32 @@ void CMFCTransitionDlg::FindCommPort()
 		{
 		AfxMessageBox(_T("无法在系统中找到有效串口！"));
 		}*/
-		if (cnt==0)
+		if (m_combobox.GetCount() == 0)
 		{
 			AfxMessageBox(_T("无法在系统中找到有效串口！"));
 		}
-		else
-		{
-			i = 0;
-			m_combobox.SetWindowSize(cnt);
-			while (1)
-			{
-				dwLong = dwSize = sizeof(portName);
-				if (::RegEnumValueA(hKey,
-					i,
-					portName,
-					&dwLong,
-					NULL,
-					NULL,
-					(PUCHAR)commName,
-					&dwSize) == ERROR_NO_MORE_ITEMS) // 枚举串口
-					break;
-				str.Format(_T("%S"), commName);
-				m_combobox.AddString(str); // commName就是串口名字
-				//cnt++;
-				i++;
-			}
-		}
+		//else
+		//{
+		//	i = 0;
+		//	m_combobox.SetWindowSize(cnt);
+		//	while (1)
+		//	{
+		//		dwLong = dwSize = sizeof(portName);
+		//		if (::RegEnumValueA(hKey,
+		//			i,
+		//			portName,
+		//			&dwLong,
+		//			NULL,
+		//			NULL,
+		//			(PUCHAR)commName,
+		//			&dwSize) == ERROR_NO_MORE_ITEMS) // 枚举串口
+		//			break;
+		//		str.Format(_T("%S"), commName);
+		//		m_combobox.AddString(str); // commName就是串口名字
+		//		//cnt++;
+		//		i++;
+		//	}
+		//}
 		RegCloseKey(hKey);
 	}
 
@@ -547,7 +548,7 @@ LRESULT CMFCTransitionDlg::Reconnect(WPARAM wParam, LPARAM lParam)
 		int nResult;
 		if (CreateLoginXml(xml, nResult))
 		{
-			SetTimer(1, 3000, NULL);
+			//SetTimer(1, 3000, NULL);
 			m_listLog.ResetContent();
 			m_btnConnect.SetWindowText(_T("断开"));
 		}
@@ -627,6 +628,15 @@ void CMFCTransitionDlg::OnTimer(UINT_PTR nIDEvent)
 		else
 		{
 			UpdateLog(_T("客户端:心跳失败!"));
+			if (m_overTime > 2)
+			{
+				KillTimer(1);
+				::PostMessage(GetSafeHwnd(), WM_USER_TIMEOUT, 0, 0);
+				m_overTime = 0;
+				UpdateLog(_T("心跳失败多次，正在重连服务器..."));
+			}
+			else
+				m_overTime++;
 		}
 		break;
 	case 2:
@@ -806,16 +816,16 @@ void CMFCTransitionDlg::OnBnClickedButtonCom()
 		AfxMessageBox(_T("服务器未连接，请先连接服务器！"));
 		return;
 	}
-	int id = m_comboCom.GetCurSel();
+	int id = m_combobox.GetCurSel();
 
 	if (!m_spConnect)
 	{
-		m_comboCom.GetLBText(id, port);
+		m_combobox.GetLBText(id, port);
 		if (OpenCom(port))
 		{
 			//SetTimer(2, 3000, NULL);
 			UpdateLog(_T("串口已打开！"));
-			m_comboCom.EnableWindow(FALSE);
+			m_combobox.EnableWindow(FALSE);
 			m_btnCom.SetWindowText(_T("断开串口"));
 
 			CStdioFile myFile;
@@ -849,7 +859,7 @@ void CMFCTransitionDlg::OnBnClickedButtonCom()
 		CloseCom();
 		m_btnCom.SetWindowText(_T("打开串口"));
 		m_spConnect = FALSE;
-		m_comboCom.EnableWindow(TRUE);
+		m_combobox.EnableWindow(TRUE);
 		UpdateLog(_T("串口已关闭！"));
 	}
 }
