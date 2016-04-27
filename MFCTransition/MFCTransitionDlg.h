@@ -63,6 +63,7 @@ public:
 	char isSet = -2;
 	BOOL isUpdata = FALSE;
 
+	//BOOL m_isTimerSet = FALSE;
 	BOOL m_connet, m_spConnect;  //m_connect代表网络是否连接；m_spConnect代表串口是否连接
 	volatile HANDLE m_hCom; //串口句柄
 	OVERLAPPED m_osRead, m_osWrite; //用于重叠读/写

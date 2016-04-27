@@ -197,7 +197,7 @@ BOOL CMFCTransitionDlg::OnInitDialog()
 	m_bmpB_Min.SizeToContent();
 
 	m_bmpB_Enter.SubclassDlgItem(IDC_BUTTON_ENTER, this);
-	m_bmpB_Enter.LoadBitmaps(IDB_BITMAP_ENTER_NORMAL, 0, 0, 0);
+	m_bmpB_Enter.LoadBitmaps(IDB_BITMAP_ENTER_NORMAL, IDB_BITMAP_ENTER_WORK, 0, 0);
 	m_bmpB_Enter.SizeToContent();
 
 	m_bmpB_Auto.SubclassDlgItem(IDC_BUTTON_AUTO, this);
@@ -527,7 +527,7 @@ LRESULT CMFCTransitionDlg::Reconnect(WPARAM wParam, LPARAM lParam)
 	CloseCom();
 	UpdateLog(_T("服务器断开连接，正在重连..."));
 	KillTimer(1);
-	m_bmpB_Enter.LoadBitmaps(IDB_BITMAP_ENTER_NORMAL, 0, 0, 0);
+	m_bmpB_Enter.LoadBitmaps(IDB_BITMAP_ENTER_NORMAL, IDB_BITMAP_ENTER_WORK, 0, 0);
 	m_bmpB_Enter.SizeToContent();
 	//delete m_pClient;
 	//m_pClient = NULL;
@@ -535,12 +535,12 @@ LRESULT CMFCTransitionDlg::Reconnect(WPARAM wParam, LPARAM lParam)
 	m_pClient->SetParam(this);
 	if (!m_pClient->Create())
 	{
-		AfxMessageBox(_T("创建套接字失败"));
+		UpdateLog(_T("创建套接字失败"));
 		return FALSE;
 	}
 	if (!m_pClient->Connect(m_ipStr, SERVER_PORT))
 	{
-		AfxMessageBox(_T("连接服务器失败！"));
+		UpdateLog(_T("连接服务器失败！"));
 		m_pClient->Close();
 		return FALSE;
 	}
@@ -623,7 +623,6 @@ void CMFCTransitionDlg::OnTimer(UINT_PTR nIDEvent)
 	{
 	case 1:
 		//::CMarkup heart_xml;
-		m_pClient->SetReconnectTimer(6000);
 		//nRes = SendHearBeat(0, 2000, 1, 0x211);
 		nRes = SendHearBeat(0, 0, 0, 0);
 		if (nRes)
@@ -633,16 +632,12 @@ void CMFCTransitionDlg::OnTimer(UINT_PTR nIDEvent)
 		}
 		else
 		{
-			UpdateLog(_T("客户端:心跳失败!"));
-			if (m_overTime > 2)
-			{
-				KillTimer(1);
-				::PostMessage(GetSafeHwnd(), WM_USER_TIMEOUT, 0, 0);
-				m_overTime = 0;
-				UpdateLog(_T("心跳失败多次，正在重连服务器..."));
-			}
-			else
-				m_overTime++;
+			//UpdateLog(_T("客户端:心跳失败!"));
+
+			//KillTimer(1);
+			UpdateLog(_T("心跳失败，正在重连服务器..."));
+			::PostMessage(GetSafeHwnd(), WM_USER_TIMEOUT, 0, 0);
+			//m_overTime = 0;
 		}
 		break;
 	case 2:
@@ -705,6 +700,12 @@ BOOL CMFCTransitionDlg::PreTranslateMessage(MSG* pMsg)
 	}
 	if (pMsg->message == WM_KEYDOWN&&pMsg->wParam == VK_RETURN)
 	{
+		if (m_connet)
+		{
+			AfxMessageBox(_T("桌面控制器已启动！"));
+			return TRUE;
+		}
+		OnBnClickedButtonEnter();
 		return TRUE;
 	}
 	if (pMsg->message == WM_KEYDOWN)
@@ -808,6 +809,7 @@ void CMFCTransitionDlg::OnBnClickedButtonConnect()
 		m_btnConnect.SetWindowText(_T("连接"));
 		UpdateLog(_T("Disconnected!!!"));
 		KillTimer(1);
+		//m_isTimerSet = FALSE;
 	}
 
 }
@@ -1446,7 +1448,7 @@ void CMFCTransitionDlg::OnBnClickedButtonEnter()
 	}
 	else
 	{
-		m_bmpB_Enter.LoadBitmaps(IDB_BITMAP_ENTER_NORMAL, 0, 0, 0);
+		m_bmpB_Enter.LoadBitmaps(IDB_BITMAP_ENTER_NORMAL, IDB_BITMAP_ENTER_WORK, 0, 0);
 		m_bmpB_Enter.SizeToContent();
 		m_listLog.ResetContent();
 		CloseCom();
@@ -1462,6 +1464,7 @@ void CMFCTransitionDlg::OnBnClickedButtonEnter()
 		m_btnConnect.SetWindowText(_T("连接"));
 		UpdateLog(_T("Disconnected!!!"));
 		KillTimer(1);
+		//m_isTimerSet = FALSE;
 	}
 }
 

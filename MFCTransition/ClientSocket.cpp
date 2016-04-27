@@ -132,6 +132,7 @@ BOOL ClientSocket::SendMSG(LPSTR lpBuff, int nlen)
 
 void ClientSocket::ParseXml(::CMarkup xml)
 {
+	KillReconnectTimer();
 	CString strCode,strRes;
 	if (m_xml.FindChildElem(MSGHEAD))
 	{
@@ -153,17 +154,26 @@ void ClientSocket::ParseXml(::CMarkup xml)
 	}
 	if (strCode==LOGIN_SUCCESS&&strRes=="1")
 	{
+
 		m_pDlg->SetTimer(1, 3000, NULL);
+		//m_pDlg->m_isTimerSet = TRUE;
+
+		
+		m_pDlg->m_overTime = 0;
 		//theApp.m_strServerIP = m_ipStr;
 		this->m_pDlg->m_connet = TRUE;
 		m_pDlg->UpdateLog(_T("Login Success!"));
-		m_pDlg->m_bmpB_Enter.LoadBitmaps(IDB_BITMAP_ENTER_WORK, 0, 0, 0);
+		m_pDlg->m_bmpB_Enter.LoadBitmaps(IDB_BITMAP_ENTER_WORK, IDB_BITMAP_ENTER_NORMAL, 0, 0);
 		m_pDlg->m_bmpB_Enter.SizeToContent();
+		CRect rc;
+		m_pDlg->m_bmpB_Enter.GetWindowRect(rc);
+		m_pDlg->ScreenToClient(&rc);
+		InvalidateRect(m_pDlg->GetSafeHwnd(), rc, FALSE);
 		return;
 	}
 	else if (strCode==HEART_BEAT)
 	{
-		this->KillReconnectTimer();
+		//this->KillReconnectTimer();
 		
 		CString record, model, layout;
 		if (m_xml.FindChildElem(MSGBODY))
@@ -247,6 +257,12 @@ BOOL ClientSocket::Packet(unsigned short msgCode, ::CMarkup &xml)
 	memcpy(p_sendBuf, &msgHead, sizeof(msgHead));
 	memcpy(p_sendBuf + nLen, str.c_str(), str.length());
 	nLen += str.length();
+	/*if (msgCode == MNG_HEARTBEAT_CODE)
+	{
+		SetReconnectTimer(3000);
+	}*/
+	SetReconnectTimer(6000);
+	//Sleep(5000);
 	BOOL nRes = SendMSG(p_sendBuf, nLen);
 	free(p_sendBuf);
 	p_sendBuf = NULL;
@@ -265,23 +281,24 @@ void ClientSocket::OnClose(int nErrorCode)
 BOOL ClientSocket::OnMessagePending()
 {
 	MSG msg;
-	if (::PeekMessage(&msg, NULL, WM_TIMER, WM_TIMER, PM_NOREMOVE))
+	if (::PeekMessage(&msg, NULL, WM_TIMER, WM_TIMER, PM_REMOVE))
 	{
 		if (msg.wParam == (UINT)m_nTimerID)
 		{
 			// Remove the message and call CancelBlockingCall.
-			::PeekMessage(&msg, NULL, WM_TIMER, WM_TIMER, PM_REMOVE);
+			//::PeekMessage(&msg, NULL, WM_TIMER, WM_TIMER, PM_REMOVE);
 			CancelBlockingCall();
+			::PostMessage(m_pDlg->GetSafeHwnd(), WM_USER_TIMEOUT, 0, 0);
 			return FALSE;  // No need for idle time processing.
 		};
 		if (msg.wParam == (UINT)m_nTimerReconnect)
 		{
-			::PostMessage(m_pDlg->GetSafeHwnd(), WM_USER_TIMEOUT,0,0);
 			// Remove the message and call CancelBlockingCall.
-			::PeekMessage(&msg, NULL, WM_TIMER, WM_TIMER, PM_REMOVE);
+			//::PeekMessage(&msg, NULL, WM_TIMER, WM_TIMER, PM_REMOVE);
 			CancelBlockingCall();
+			::PostMessage(m_pDlg->GetSafeHwnd(), WM_USER_TIMEOUT, 0, 0);
 			return FALSE;  // No need for idle time processing.
-		}
+		};
 	};
 	return CSocket::OnMessagePending();
 }
