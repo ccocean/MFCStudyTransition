@@ -154,8 +154,10 @@ void ClientSocket::ParseXml(::CMarkup xml)
 	}
 	if (strCode==LOGIN_SUCCESS&&strRes=="1")
 	{
-
+		m_pDlg->KillTimer(1);
+		m_pDlg->m_isAlive = TRUE;
 		m_pDlg->SetTimer(1, 3000, NULL);
+		m_pDlg->HideWindow();
 		//m_pDlg->m_isTimerSet = TRUE;
 
 		
@@ -174,7 +176,7 @@ void ClientSocket::ParseXml(::CMarkup xml)
 	else if (strCode==HEART_BEAT)
 	{
 		//this->KillReconnectTimer();
-		
+		m_pDlg->m_isAlive = TRUE;
 		CString record, model, layout;
 		if (m_xml.FindChildElem(MSGBODY))
 		{

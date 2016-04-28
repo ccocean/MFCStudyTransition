@@ -218,6 +218,11 @@ BOOL CMFCTransitionDlg::OnInitDialog()
 	m_redbrush.CreateSolidBrush(m_redcolor);      // 红色背景色  
 	m_bluebrush.CreateSolidBrush(m_bgcolor);    // 蓝色背景色
 
+	if (!m_connet)
+	{
+		OnBnClickedButtonEnter();
+	}
+
 	/*m_combobox.SetWindowSize(3);
 	m_combobox.AddString(_T("你好"));
 	m_combobox.AddString(_T("我很好"));
@@ -284,6 +289,7 @@ void CMFCTransitionDlg::FindCommPort()
 		}*/
 		if (m_combobox.GetCount() == 0)
 		{
+			//SetTimer(100, 1000, NULL);
 			AfxMessageBox(_T("无法在系统中找到有效串口！"));
 		}
 		//else
@@ -526,40 +532,40 @@ LRESULT CMFCTransitionDlg::Reconnect(WPARAM wParam, LPARAM lParam)
 	m_connet = FALSE;
 	CloseCom();
 	UpdateLog(_T("服务器断开连接，正在重连..."));
-	KillTimer(1);
 	m_bmpB_Enter.LoadBitmaps(IDB_BITMAP_ENTER_NORMAL, IDB_BITMAP_ENTER_WORK, 0, 0);
 	m_bmpB_Enter.SizeToContent();
 	//delete m_pClient;
 	//m_pClient = NULL;
 	//m_pClient = new ClientSocket;
-	m_pClient->SetParam(this);
-	if (!m_pClient->Create())
-	{
-		UpdateLog(_T("创建套接字失败"));
-		return FALSE;
-	}
-	if (!m_pClient->Connect(m_ipStr, SERVER_PORT))
-	{
-		UpdateLog(_T("连接服务器失败！"));
-		m_pClient->Close();
-		return FALSE;
-	}
-	else
-	{
-		//m_pClient->SetParam(this);
-		//::CMarkup xml;
-		//int nResult;
-		//if (CreateLoginXml(xml, nResult))
-		//{
-		//	//SetTimer(1, 3000, NULL);
-		//	m_listLog.ResetContent();
-		//	m_btnConnect.SetWindowText(_T("断开"));
-		//}
-		//OnBnClickedButtonConnect();
-		OnBnClickedButtonEnter();
-		return TRUE;
-	}
-	
+	//m_pClient->SetParam(this);
+	//if (!m_pClient->Create())
+	//{
+	//	UpdateLog(_T("创建套接字失败"));
+	//	return FALSE;
+	//}
+	//if (!m_pClient->Connect(m_ipStr, SERVER_PORT))
+	//{
+	//	UpdateLog(_T("连接服务器失败！"));
+	//	m_pClient->Close();
+	//	return FALSE;
+	//}
+	//else
+	//{
+	//	//m_pClient->SetParam(this);
+	//	//::CMarkup xml;
+	//	//int nResult;
+	//	//if (CreateLoginXml(xml, nResult))
+	//	//{
+	//	//	//SetTimer(1, 3000, NULL);
+	//	//	m_listLog.ResetContent();
+	//	//	m_btnConnect.SetWindowText(_T("断开"));
+	//	//}
+	//	//OnBnClickedButtonConnect();
+	//	OnBnClickedButtonEnter();
+	//	return TRUE;
+	//}
+	OnBnClickedButtonEnter();
+	return TRUE;
 }
 
 int CMFCTransitionDlg::ParseXmlFile()
@@ -619,35 +625,53 @@ void CMFCTransitionDlg::OnTimer(UINT_PTR nIDEvent)
 {
 	// TODO:  在此添加消息处理程序代码和/或调用默认值
 	BOOL nRes;
+	int a = 8, b = 2, c = 2;
+	unsigned char *sendBuf = new unsigned char[PROTOCOL_LEN];
 	switch (nIDEvent)
 	{
 	case 1:
 		//::CMarkup heart_xml;
 		//nRes = SendHearBeat(0, 2000, 1, 0x211);
-		nRes = SendHearBeat(0, 0, 0, 0);
-		if (nRes)
+		if (m_isAlive)
 		{
-			UpdateLog(_T("客户端:发送心跳!"));
-			m_overTime = 0;
+			nRes = SendHearBeat(0, 0, 0, 0);
+			if (nRes)
+			{
+				UpdateLog(_T("客户端:发送心跳!"));
+				m_isAlive = FALSE;
+			}
+			else
+			{
+				//UpdateLog(_T("客户端:心跳失败!"));
+
+				//KillTimer(1);
+				UpdateLog(_T("心跳失败，正在重连服务器..."));
+				m_isAlive = FALSE;
+				::PostMessage(GetSafeHwnd(), WM_USER_TIMEOUT, 0, 0);
+				//m_overTime = 0;
+			}
 		}
 		else
 		{
-			//UpdateLog(_T("客户端:心跳失败!"));
-
-			//KillTimer(1);
-			UpdateLog(_T("心跳失败，正在重连服务器..."));
 			::PostMessage(GetSafeHwnd(), WM_USER_TIMEOUT, 0, 0);
-			//m_overTime = 0;
 		}
 		break;
 	case 2:
 		unsigned char val;
-		int a = 8, b = 2, c = 2;
 		val = (a << 4) + (b << 2) + (c);
-		unsigned char *sendBuf = new unsigned char[PROTOCOL_LEN];
 		memcpy(sendBuf, "@#_#@", PROTOCOL_LEN);
 		memcpy(sendBuf + 2, &val, 1);
 		WriteComm(sendBuf, PROTOCOL_LEN);
+		break;
+	case 33:
+		SetTimer(100, 1000, NULL);
+		AfxMessageBox(_T("连接超时"));
+		KillTimer(nIDEvent);
+		break;
+	case 100:
+		KillTimer(nIDEvent);
+		keybd_event(VK_RETURN, 0, 0, 0);
+		keybd_event(VK_RETURN, 0, KEYEVENTF_KEYUP, 0);//模拟"回车"命令
 		break;
 	}
 	CDialogEx::OnTimer(nIDEvent);
@@ -702,6 +726,7 @@ BOOL CMFCTransitionDlg::PreTranslateMessage(MSG* pMsg)
 	{
 		if (m_connet)
 		{
+			SetTimer(100, 1000, NULL);
 			AfxMessageBox(_T("桌面控制器已启动！"));
 			return TRUE;
 		}
@@ -733,6 +758,10 @@ BOOL CMFCTransitionDlg::PreTranslateMessage(MSG* pMsg)
 					//SetWindowPos(NULL, 0, 0, wndRect.right, wndRect.bottom - 260, SWP_NOMOVE);
 				}
 			}
+			if (pMsg->wParam=='Y')
+			{
+				m_bmpB_Enter.EnableWindow(TRUE);
+			}
 		}
 	}
 	return CDialogEx::PreTranslateMessage(pMsg);
@@ -750,16 +779,20 @@ void CMFCTransitionDlg::OnBnClickedButtonConnect()
 	{
 		m_pClient = new ClientSocket();
 		m_pClient->SetParam(this);
+		//SetTimer(OVERTIME, 3000, NULL);
 		if (!m_pClient->Create())
 		{
+			SetTimer(100, 1000, NULL);
 			AfxMessageBox(_T("创建套接字失败"));
 			return;
 		}
 		if (!m_pClient->Connect(m_ipStr, SERVER_PORT))
 		{
+			SetTimer(100, 1000, NULL);
 			AfxMessageBox(_T("连接服务器失败！"));
 			m_pClient->Close();
 		}
+
 		else
 		{
 
@@ -804,14 +837,13 @@ void CMFCTransitionDlg::OnBnClickedButtonConnect()
 	{
 		m_connet = FALSE;
 		m_pClient->Close();
-		delete m_pClient;
-		m_pClient = NULL;
+		//delete m_pClient;
+		//m_pClient = NULL;
 		m_btnConnect.SetWindowText(_T("连接"));
 		UpdateLog(_T("Disconnected!!!"));
 		KillTimer(1);
 		//m_isTimerSet = FALSE;
 	}
-
 }
 
 //一系列串口的函数
@@ -821,6 +853,7 @@ void CMFCTransitionDlg::OnBnClickedButtonCom()
 	CString port;
 	if (!m_connet)
 	{
+		SetTimer(100, 1000, NULL);
 		AfxMessageBox(_T("服务器未连接，请先连接服务器！"));
 		return;
 	}
@@ -833,7 +866,7 @@ void CMFCTransitionDlg::OnBnClickedButtonCom()
 		{
 			//SetTimer(2, 3000, NULL);
 			UpdateLog(_T("串口已打开！"));
-			m_combobox.EnableWindow(FALSE);
+			
 			m_btnCom.SetWindowText(_T("断开串口"));
 
 			CStdioFile myFile;
@@ -847,7 +880,10 @@ void CMFCTransitionDlg::OnBnClickedButtonCom()
 			}
 			else
 			{
-				HideWindow();
+				//m_btnEnter.EnableWindow(FALSE);
+				//HideWindow();
+				//m_bmpB_Enter.EnableWindow(FALSE);
+				m_combobox.EnableWindow(FALSE);
 				myFile.SeekToBegin();
 				myFile.WriteString(m_ipStr);
 				myFile.Write(("\r\n"), 2);
@@ -1057,6 +1093,7 @@ void CMFCTransitionDlg::OnAPICommNotify(void)
 
 	if (!m_hCom)
 	{
+		SetTimer(100, 1000, NULL);
 		AfxMessageBox(_T("串口句柄错误！"));
 		return;
 	}
@@ -1151,6 +1188,7 @@ UINT CMFCTransitionDlg::CommProc(LPVOID pParam)
 
 	if (!pDlg->m_hCom)
 	{
+		pDlg->SetTimer(100, 1000, NULL);
 		AfxMessageBox(_T("串口句柄错误！"));
 		return -1;
 	}
@@ -1159,6 +1197,7 @@ UINT CMFCTransitionDlg::CommProc(LPVOID pParam)
 	os.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 	if (os.hEvent==NULL)
 	{
+		pDlg->SetTimer(100, 1000, NULL);
 		AfxMessageBox(_T("Can't create event object!"));
 		return (UINT)-1;
 	}
@@ -1196,6 +1235,7 @@ BOOL CMFCTransitionDlg::OpenCom(CString port)
 
 	if (m_spConnect)
 	{
+		SetTimer(100, 1000, NULL);
 		AfxMessageBox(_T("串口已打开"));
 		return FALSE;
 	}
@@ -1205,6 +1245,7 @@ BOOL CMFCTransitionDlg::OpenCom(CString port)
 
 	if (m_hCom==INVALID_HANDLE_VALUE)
 	{
+		SetTimer(100, 1000, NULL);
 		AfxMessageBox(_T("串口不存在或被占用！"));
 		return FALSE;
 	}
@@ -1226,6 +1267,7 @@ BOOL CMFCTransitionDlg::OpenCom(CString port)
 		{
 			//m_spConnect = FALSE;
 			CloseHandle(m_hCom);
+			SetTimer(100, 1000, NULL);
 			AfxMessageBox(_T("创建线程错误！"));
 			return FALSE;
 		}
@@ -1240,6 +1282,7 @@ BOOL CMFCTransitionDlg::OpenCom(CString port)
 	{
 		m_spConnect = FALSE;
 		CloseHandle(m_hCom);
+		SetTimer(100, 1000, NULL);
 		AfxMessageBox(_T("配置文件出错！"));
 		return FALSE;
 	}
@@ -1456,7 +1499,7 @@ void CMFCTransitionDlg::OnBnClickedButtonEnter()
 		m_spConnect = FALSE;
 		m_comboCom.EnableWindow(TRUE);
 		UpdateLog(_T("串口已关闭！"));
-
+		//m_btnEnter.EnableWindow(TRUE);
 		m_connet = FALSE;
 		m_pClient->Close();
 		//delete m_pClient;

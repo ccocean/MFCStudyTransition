@@ -20,6 +20,8 @@
 #define E 14
 #define F 15
 
+#define OVERTIME 33
+
 // CMFCTransitionDlg 对话框
 class CMFCTransitionDlg : public CDialogEx
 {
@@ -64,7 +66,8 @@ public:
 	BOOL isUpdata = FALSE;
 
 	//BOOL m_isTimerSet = FALSE;
-	BOOL m_connet, m_spConnect;  //m_connect代表网络是否连接；m_spConnect代表串口是否连接
+	BOOL m_isAlive = FALSE;
+	BOOL m_connet = FALSE, m_spConnect = FALSE;  //m_connect代表网络是否连接；m_spConnect代表串口是否连接
 	volatile HANDLE m_hCom; //串口句柄
 	OVERLAPPED m_osRead, m_osWrite; //用于重叠读/写
 	CWinThread *m_pThread;//代表辅助线程
