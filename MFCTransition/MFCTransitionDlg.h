@@ -22,6 +22,9 @@
 
 #define OVERTIME 33
 
+#define NOTIFY_ADD 0
+#define NOTIFY_MODIFY 1
+
 // CMFCTransitionDlg 对话框
 class CMFCTransitionDlg : public CDialogEx
 {
@@ -94,7 +97,7 @@ public:
 	BOOL CheckUpDown(int up, int dn){ return up == dn; };
 	CString GetFilePath();
 	CString m_filePath;
-	void HideWindow();
+	void HideWindow(int type);
 	void LoadIMG();
 	CRgn m_rgn; //圆角对话框
 
@@ -139,4 +142,5 @@ public:
 	CEdit m_editIp;
 	CListBox m_list2;
 	CComboboxEx m_combobox;
+	CStatic m_txtLog;
 };

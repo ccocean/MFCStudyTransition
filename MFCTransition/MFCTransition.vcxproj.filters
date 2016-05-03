@@ -161,7 +161,7 @@
     <Image Include="res\scrollbar.bmp">
       <Filter>资源文件</Filter>
     </Image>
-    <Image Include="res\icon1.ico">
+    <Image Include="res\MFCTransition2.ico">
       <Filter>资源文件</Filter>
     </Image>
   </ItemGroup>

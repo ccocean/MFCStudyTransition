@@ -157,11 +157,11 @@ void ClientSocket::ParseXml(::CMarkup xml)
 		m_pDlg->KillTimer(1);
 		m_pDlg->m_isAlive = TRUE;
 		m_pDlg->SetTimer(1, 3000, NULL);
-		m_pDlg->HideWindow();
+		m_pDlg->HideWindow(NOTIFY_ADD);
 		//m_pDlg->m_isTimerSet = TRUE;
 
 		
-		m_pDlg->m_overTime = 0;
+		//m_pDlg->m_overTime = 0;
 		//theApp.m_strServerIP = m_ipStr;
 		this->m_pDlg->m_connet = TRUE;
 		m_pDlg->UpdateLog(_T("Login Success!"));

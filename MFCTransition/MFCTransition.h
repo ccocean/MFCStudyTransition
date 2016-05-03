@@ -19,11 +19,11 @@ class CMFCTransitionApp : public CWinApp
 {
 public:
 	CMFCTransitionApp();
-
+	HANDLE m_hMutex;
 // ÷ÿ–¥
 public:
 	virtual BOOL InitInstance();
-	
+	virtual int ExitInstance();
 	
 
 //  µœ÷

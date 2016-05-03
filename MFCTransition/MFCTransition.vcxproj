@@ -154,8 +154,8 @@
     <Image Include="..\bin\images\默认.bmp" />
     <Image Include="res\bitmap1.bmp" />
     <Image Include="res\combobox150x27.bmp" />
-    <Image Include="res\icon1.ico" />
     <Image Include="res\MFCTransition.ico" />
+    <Image Include="res\MFCTransition2.ico" />
     <Image Include="res\scrollbar.bmp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -56,7 +56,8 @@ END_MESSAGE_MAP()
 CMFCTransitionDlg::CMFCTransitionDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(CMFCTransitionDlg::IDD, pParent)
 {
-	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+	//m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINDISABLE);
 }
 
 void CMFCTransitionDlg::DoDataExchange(CDataExchange* pDX)
@@ -73,6 +74,7 @@ void CMFCTransitionDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT_IP, m_editIp);
 	DDX_Control(pDX, IDC_LIST2, m_list2);
 	DDX_Control(pDX, IDC_IDC_CBSTATIC, m_combobox);
+	DDX_Control(pDX, IDC_STATIC_LOG, m_txtLog);
 }
 
 BEGIN_MESSAGE_MAP(CMFCTransitionDlg, CDialogEx)
@@ -221,6 +223,7 @@ BOOL CMFCTransitionDlg::OnInitDialog()
 	if (!m_connet)
 	{
 		OnBnClickedButtonEnter();
+		//HideWindow(NOTIFY_ADD);
 	}
 
 	/*m_combobox.SetWindowSize(3);
@@ -290,7 +293,8 @@ void CMFCTransitionDlg::FindCommPort()
 		if (m_combobox.GetCount() == 0)
 		{
 			//SetTimer(100, 1000, NULL);
-			AfxMessageBox(_T("无法在系统中找到有效串口！"));
+			//AfxMessageBox(_T("无法在系统中找到有效串口！"));
+			m_txtLog.SetWindowText(_T("无法在系统中找到有效串口！"));
 		}
 		//else
 		//{
@@ -534,6 +538,11 @@ LRESULT CMFCTransitionDlg::Reconnect(WPARAM wParam, LPARAM lParam)
 	UpdateLog(_T("服务器断开连接，正在重连..."));
 	m_bmpB_Enter.LoadBitmaps(IDB_BITMAP_ENTER_NORMAL, IDB_BITMAP_ENTER_WORK, 0, 0);
 	m_bmpB_Enter.SizeToContent();
+	CRect rc;
+	m_bmpB_Enter.GetWindowRect(rc);
+	ScreenToClient(&rc);
+	InvalidateRect(rc, FALSE);
+	//HideWindow(NOTIFY_MODIFY);
 	//delete m_pClient;
 	//m_pClient = NULL;
 	//m_pClient = new ClientSocket;
@@ -634,6 +643,7 @@ void CMFCTransitionDlg::OnTimer(UINT_PTR nIDEvent)
 		//nRes = SendHearBeat(0, 2000, 1, 0x211);
 		if (m_isAlive)
 		{
+			m_overTime = 0;
 			nRes = SendHearBeat(0, 0, 0, 0);
 			if (nRes)
 			{
@@ -643,17 +653,26 @@ void CMFCTransitionDlg::OnTimer(UINT_PTR nIDEvent)
 			else
 			{
 				//UpdateLog(_T("客户端:心跳失败!"));
-
 				//KillTimer(1);
 				UpdateLog(_T("心跳失败，正在重连服务器..."));
 				m_isAlive = FALSE;
-				::PostMessage(GetSafeHwnd(), WM_USER_TIMEOUT, 0, 0);
+				::PostMessage(GetSafeHwnd(), WM_USER_TIMEOUT,0, 0);
 				//m_overTime = 0;
 			}
 		}
 		else
 		{
+			/*if (m_overTime<1)
+			{
+				m_isAlive = TRUE;
+				m_overTime++;
+			}
+			else
+			{
+				m_isAlive = FALSE;
+				UpdateLog(_T("正在重连服务器..."));*/
 			::PostMessage(GetSafeHwnd(), WM_USER_TIMEOUT, 0, 0);
+			//}
 		}
 		break;
 	case 2:
@@ -726,8 +745,9 @@ BOOL CMFCTransitionDlg::PreTranslateMessage(MSG* pMsg)
 	{
 		if (m_connet)
 		{
-			SetTimer(100, 1000, NULL);
-			AfxMessageBox(_T("桌面控制器已启动！"));
+			//SetTimer(100, 1000, NULL);
+			//AfxMessageBox(_T("桌面控制器已启动！"));
+			m_txtLog.SetWindowText(_T("桌面控制器已启动！"));
 			return TRUE;
 		}
 		OnBnClickedButtonEnter();
@@ -782,20 +802,22 @@ void CMFCTransitionDlg::OnBnClickedButtonConnect()
 		//SetTimer(OVERTIME, 3000, NULL);
 		if (!m_pClient->Create())
 		{
-			SetTimer(100, 1000, NULL);
-			AfxMessageBox(_T("创建套接字失败"));
+			//SetTimer(100, 1000, NULL);
+			//AfxMessageBox(_T("创建套接字失败"));
+			m_txtLog.SetWindowText(_T("创建套接字失败"));
 			return;
 		}
+		m_txtLog.SetWindowText(_T("服务器连接中！"));
 		if (!m_pClient->Connect(m_ipStr, SERVER_PORT))
 		{
-			SetTimer(100, 1000, NULL);
-			AfxMessageBox(_T("连接服务器失败！"));
+			//SetTimer(100, 1000, NULL);
+			//AfxMessageBox(_T("连接服务器失败！"));
+			m_txtLog.SetWindowText(_T(""));
+			m_txtLog.SetWindowText(_T("连接服务器失败！"));
 			m_pClient->Close();
 		}
-
 		else
 		{
-
 			::CMarkup xml;
 			int nResult;
 			if (CreateLoginXml(xml, nResult))
@@ -853,8 +875,9 @@ void CMFCTransitionDlg::OnBnClickedButtonCom()
 	CString port;
 	if (!m_connet)
 	{
-		SetTimer(100, 1000, NULL);
-		AfxMessageBox(_T("服务器未连接，请先连接服务器！"));
+		//SetTimer(100, 1000, NULL);
+		//AfxMessageBox(_T("服务器未连接，请先连接服务器！"));
+		m_txtLog.SetWindowText(_T("服务器未连接，请先连接服务器！"));
 		return;
 	}
 	int id = m_combobox.GetCurSel();
@@ -877,13 +900,20 @@ void CMFCTransitionDlg::OnBnClickedButtonCom()
 			if (!openResult)
 			{
 				UpdateLog(_T("打开文件错误，写入信息失败！"));
+				
 			}
 			else
 			{
 				//m_btnEnter.EnableWindow(FALSE);
 				//HideWindow();
 				//m_bmpB_Enter.EnableWindow(FALSE);
+				m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+				//HideWindow(NOTIFY_MODIFY);
+				//m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINDISABLE);
+				SetIcon(m_hIcon, TRUE);			// 设置大图标
+				SetIcon(m_hIcon, FALSE);		// 设置小图标
 				m_combobox.EnableWindow(FALSE);
+				m_txtLog.SetWindowText(_T(""));
 				myFile.SeekToBegin();
 				myFile.WriteString(m_ipStr);
 				myFile.Write(("\r\n"), 2);
@@ -895,6 +925,14 @@ void CMFCTransitionDlg::OnBnClickedButtonCom()
 				myFile.Flush();
 				myFile.Close();
 			}
+		}
+		else
+		{
+			m_pClient->Close();
+			m_connet = FALSE;
+			m_spConnect = FALSE;
+			m_txtLog.SetWindowText(_T("串口打开失败..."));
+			return;
 		}
 	}
 	else
@@ -943,7 +981,7 @@ LRESULT CMFCTransitionDlg::OnNotifyMsg(WPARAM wParam, LPARAM lParam)
 	return TRUE;
 }
 
-void CMFCTransitionDlg::HideWindow()
+void CMFCTransitionDlg::HideWindow(int type)
 {
 	if (isDebug)
 	{
@@ -951,14 +989,54 @@ void CMFCTransitionDlg::HideWindow()
 	}
 	m_tnid.cbSize = sizeof(NOTIFYICONDATA);
 	m_tnid.hWnd = this->m_hWnd;
-	m_tnid.uID = IDR_MAINFRAME;
-	m_tnid.hIcon = LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDR_MAINFRAME));
-	//strcpy(m_tnid.szTip, "Michael_Chen is a good man");
-	m_tnid.uCallbackMessage = WM_USER_NOTIFYICON;
-	m_tnid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP; //OK,下面就是托盘产生了. 
-	Shell_NotifyIcon(NIM_ADD, &m_tnid);
-	//SetWindowPos(NULL, 0, 0, 0, 0, SWP_HIDEWINDOW);
-	ShowWindow(SW_HIDE);
+	if (type==NOTIFY_ADD)
+	{
+		/*if (m_connet)
+		{*/
+			m_tnid.uID = IDR_MAINFRAME;
+			m_tnid.hIcon = LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDR_MAINFRAME));
+			//strcpy(m_tnid.szTip, "Michael_Chen is a good man");
+			m_tnid.uCallbackMessage = WM_USER_NOTIFYICON;
+			m_tnid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP; //OK,下面就是托盘产生了. 
+			Shell_NotifyIcon(NIM_ADD, &m_tnid);
+			//SetWindowPos(NULL, 0, 0, 0, 0, SWP_HIDEWINDOW);
+			ShowWindow(SW_HIDE);
+		//}
+		//else
+		//{
+		//	m_tnid.uID = IDR_MAINDISABLE;
+		//	m_tnid.hIcon = LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDR_MAINDISABLE));
+		//	m_tnid.uCallbackMessage = WM_USER_NOTIFYICON;
+		//	m_tnid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP; //OK,下面就是托盘产生了. 
+		//	Shell_NotifyIcon(NIM_ADD, &m_tnid);
+		//	//SetWindowPos(NULL, 0, 0, 0, 0, SWP_HIDEWINDOW);
+		//	ShowWindow(SW_HIDE);
+		//}
+	}
+	//else
+	//{
+	//	if (m_connet)
+	//	{
+	//		m_tnid.uID = IDR_MAINFRAME;
+	//		m_tnid.hIcon = LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDR_MAINFRAME));
+	//		//strcpy(m_tnid.szTip, "Michael_Chen is a good man");
+	//		m_tnid.uCallbackMessage = WM_USER_NOTIFYICON;
+	//		m_tnid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP; //OK,下面就是托盘产生了. 
+	//		Shell_NotifyIcon(NIM_MODIFY, &m_tnid);
+	//		//SetWindowPos(NULL, 0, 0, 0, 0, SWP_HIDEWINDOW);
+	//		ShowWindow(SW_HIDE);
+	//	}
+	//	else
+	//	{
+	//		m_tnid.uID = IDR_MAINDISABLE;
+	//		m_tnid.hIcon = LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDR_MAINDISABLE));
+	//		m_tnid.uCallbackMessage = WM_USER_NOTIFYICON;
+	//		m_tnid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP; //OK,下面就是托盘产生了. 
+	//		Shell_NotifyIcon(NIM_MODIFY, &m_tnid);
+	//		//SetWindowPos(NULL, 0, 0, 0, 0, SWP_HIDEWINDOW);
+	//		ShowWindow(SW_HIDE);
+	//	}
+	//}
 }
 
 LRESULT CMFCTransitionDlg::Send2SerialPort(WPARAM wParam, LPARAM lParam)
@@ -1094,7 +1172,8 @@ void CMFCTransitionDlg::OnAPICommNotify(void)
 	if (!m_hCom)
 	{
 		SetTimer(100, 1000, NULL);
-		AfxMessageBox(_T("串口句柄错误！"));
+		//AfxMessageBox(_T("串口句柄错误！"));
+		m_txtLog.SetWindowText(_T("串口句柄错误！"));
 		return;
 	}
 
@@ -1188,8 +1267,9 @@ UINT CMFCTransitionDlg::CommProc(LPVOID pParam)
 
 	if (!pDlg->m_hCom)
 	{
-		pDlg->SetTimer(100, 1000, NULL);
-		AfxMessageBox(_T("串口句柄错误！"));
+		//pDlg->SetTimer(100, 1000, NULL);
+		//AfxMessageBox(_T("串口句柄错误！"));
+		pDlg->m_txtLog.SetWindowText(_T("串口句柄错误！"));
 		return -1;
 	}
 
@@ -1197,8 +1277,9 @@ UINT CMFCTransitionDlg::CommProc(LPVOID pParam)
 	os.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 	if (os.hEvent==NULL)
 	{
-		pDlg->SetTimer(100, 1000, NULL);
-		AfxMessageBox(_T("Can't create event object!"));
+		//pDlg->SetTimer(100, 1000, NULL);
+		//AfxMessageBox(_T("Can't create event object!"));
+		pDlg->m_txtLog.SetWindowText(_T("Can't create event object!"));
 		return (UINT)-1;
 	}
 	while (pDlg->m_spConnect)
@@ -1235,8 +1316,9 @@ BOOL CMFCTransitionDlg::OpenCom(CString port)
 
 	if (m_spConnect)
 	{
-		SetTimer(100, 1000, NULL);
-		AfxMessageBox(_T("串口已打开"));
+		//SetTimer(100, 1000, NULL);
+		//AfxMessageBox(_T("串口已打开"));
+		m_txtLog.SetWindowText(_T("串口已打开"));
 		return FALSE;
 	}
 
@@ -1245,8 +1327,9 @@ BOOL CMFCTransitionDlg::OpenCom(CString port)
 
 	if (m_hCom==INVALID_HANDLE_VALUE)
 	{
-		SetTimer(100, 1000, NULL);
-		AfxMessageBox(_T("串口不存在或被占用！"));
+		//SetTimer(100, 1000, NULL);
+		//AfxMessageBox(_T("串口不存在或被占用！"));
+		m_txtLog.SetWindowText(_T("串口不存在或被占用！"));
 		return FALSE;
 	}
 	SetupComm(m_hCom, MAXBUFFER, MAXBUFFER);
@@ -1267,8 +1350,9 @@ BOOL CMFCTransitionDlg::OpenCom(CString port)
 		{
 			//m_spConnect = FALSE;
 			CloseHandle(m_hCom);
-			SetTimer(100, 1000, NULL);
-			AfxMessageBox(_T("创建线程错误！"));
+			//SetTimer(100, 1000, NULL);
+			//AfxMessageBox(_T("创建线程错误！"));
+			m_txtLog.SetWindowText(_T("创建线程错误！"));
 			return FALSE;
 		}
 		else
@@ -1282,8 +1366,9 @@ BOOL CMFCTransitionDlg::OpenCom(CString port)
 	{
 		m_spConnect = FALSE;
 		CloseHandle(m_hCom);
-		SetTimer(100, 1000, NULL);
-		AfxMessageBox(_T("配置文件出错！"));
+		//SetTimer(100, 1000, NULL);
+		//AfxMessageBox(_T("配置文件出错！"));
+		m_txtLog.SetWindowText(_T("配置文件出错！"));
 		return FALSE;
 	}
 	return TRUE;
@@ -1416,7 +1501,8 @@ HBRUSH CMFCTransitionDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 		pWnd->GetDlgCtrlID() == IDC_STATIC_COM || 
 		pWnd->GetDlgCtrlID() == IDC_STATIC_BAUD ||
 		pWnd->GetDlgCtrlID() == IDC_STATIC_AUTO ||
-		pWnd->GetDlgCtrlID() == IDC_IDC_CBSTATIC)
+		pWnd->GetDlgCtrlID() == IDC_IDC_CBSTATIC ||
+		pWnd->GetDlgCtrlID() == IDC_STATIC_LOG)
 	{
 		m_font.CreatePointFont(100, _T("微软雅黑"));
 		pDC->SelectObject(&m_font);       //设置字体 
@@ -1491,6 +1577,11 @@ void CMFCTransitionDlg::OnBnClickedButtonEnter()
 	}
 	else
 	{
+		//m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+		m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINDISABLE);
+		//HideWindow(NOTIFY_MODIFY);
+		SetIcon(m_hIcon, TRUE);			// 设置大图标
+		SetIcon(m_hIcon, FALSE);		// 设置小图标
 		m_bmpB_Enter.LoadBitmaps(IDB_BITMAP_ENTER_NORMAL, IDB_BITMAP_ENTER_WORK, 0, 0);
 		m_bmpB_Enter.SizeToContent();
 		m_listLog.ResetContent();
@@ -1515,7 +1606,7 @@ void CMFCTransitionDlg::OnBnClickedButtonEnter()
 void CMFCTransitionDlg::OnBnClickedButtonMin()
 {
 	// TODO:  在此添加控件通知处理程序代码
-	HideWindow();
+	HideWindow(NOTIFY_ADD);
 }
 
 
