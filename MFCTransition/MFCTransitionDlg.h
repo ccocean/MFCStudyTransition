@@ -107,6 +107,7 @@ public:
 	CBitmapButton m_bmpB_Enter;
 	CBitmapButton m_bmpB_Auto;
 
+	void CheckAuto();
 	int m_isDbg = 0;
 	int m_overTime = 0;
 	BOOL isDebug = FALSE;

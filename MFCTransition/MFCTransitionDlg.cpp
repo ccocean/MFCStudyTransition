@@ -181,10 +181,10 @@ BOOL CMFCTransitionDlg::OnInitDialog()
 			{
 				m_combobox.SetCurSel(_ttoi(temp));
 			}
-			if (cnt == 2)
-			{
-				m_isAuto = _ttoi(temp);
-			}
+			//if (cnt == 2)
+			//{
+			//	m_isAuto = _ttoi(temp);
+			//}
 			cnt++;
 		}
 	}
@@ -203,16 +203,8 @@ BOOL CMFCTransitionDlg::OnInitDialog()
 	m_bmpB_Enter.SizeToContent();
 
 	m_bmpB_Auto.SubclassDlgItem(IDC_BUTTON_AUTO, this);
-	if (m_isAuto)
-	{
-		m_bmpB_Auto.LoadBitmaps(IDB_BITMAP_AUTO_WORK, 0, 0, 0);
-		m_bmpB_Auto.SizeToContent();
-	}
-	else
-	{
-		m_bmpB_Auto.LoadBitmaps(IDB_BITMAP_AUTO_NORMAL, 0, 0, 0);
-		m_bmpB_Auto.SizeToContent();
-	}
+	
+	CheckAuto();
 	
 	m_redcolor = RGB(255, 0, 0);                      // 红色  
 	m_bgcolor = RGB(23, 23, 23);                     // 蓝色  
@@ -258,7 +250,7 @@ void CMFCTransitionDlg::FindCommPort()
 	CString str;
 	CString portName[16];
 	HKEY hKey;
-	//int cnt = 0;
+	int cnt = 0;
 	if (::RegOpenKeyEx(HKEY_LOCAL_MACHINE,
 		_T("Hardware\\DeviceMap\\SerialComm"),
 		NULL,
@@ -280,9 +272,9 @@ void CMFCTransitionDlg::FindCommPort()
 				(PUCHAR)commName,
 				&dwSize) == ERROR_NO_MORE_ITEMS) // 枚举串口
 				break;
-			str.Format(_T("%S"), commName);
-			m_combobox.AddString(str); // commName就是串口名字
-			//cnt++;
+			//str.Format(_T("%S"), commName);
+			//m_combobox.AddString(str); // commName就是串口名字
+			cnt++;
 			i++;
 		}
 		//m_combobox.SetWindowSize(m_combobox.GetCount());
@@ -290,34 +282,41 @@ void CMFCTransitionDlg::FindCommPort()
 		{
 		AfxMessageBox(_T("无法在系统中找到有效串口！"));
 		}*/
-		if (m_combobox.GetCount() == 0)
+		if (cnt == 0)
 		{
 			//SetTimer(100, 1000, NULL);
 			//AfxMessageBox(_T("无法在系统中找到有效串口！"));
 			m_txtLog.SetWindowText(_T("无法在系统中找到有效串口！"));
 		}
-		//else
-		//{
-		//	i = 0;
-		//	m_combobox.SetWindowSize(cnt);
-		//	while (1)
-		//	{
-		//		dwLong = dwSize = sizeof(portName);
-		//		if (::RegEnumValueA(hKey,
-		//			i,
-		//			portName,
-		//			&dwLong,
-		//			NULL,
-		//			NULL,
-		//			(PUCHAR)commName,
-		//			&dwSize) == ERROR_NO_MORE_ITEMS) // 枚举串口
-		//			break;
-		//		str.Format(_T("%S"), commName);
-		//		m_combobox.AddString(str); // commName就是串口名字
-		//		//cnt++;
-		//		i++;
-		//	}
-		//}
+		else
+		{
+			i = 0;
+			if (cnt > 3)
+			{
+				m_combobox.SetWindowSize(3);
+			}
+			else
+			{
+				m_combobox.SetWindowSize(cnt);
+			}
+			while (1)
+			{
+				dwLong = dwSize = sizeof(portName);
+				if (::RegEnumValueA(hKey,
+					i,
+					portName,
+					&dwLong,
+					NULL,
+					NULL,
+					(PUCHAR)commName,
+					&dwSize) == ERROR_NO_MORE_ITEMS) // 枚举串口
+					break;
+				str.Format(_T("%S"), commName);
+				m_combobox.AddString(str); // commName就是串口名字
+				//cnt++;
+				i++;
+			}
+		}
 		RegCloseKey(hKey);
 	}
 
@@ -795,6 +794,12 @@ void CMFCTransitionDlg::OnBnClickedButtonConnect()
 	//m_ipStr.Format(_T("%d.%d.%d.%d"), nf1, nf2, nf3, nf4);
 	m_editIp.GetWindowText(m_ipStr);
 
+	if (m_ipStr=="")
+	{
+		AfxMessageBox(_T("IP地址为空！"));
+		return;
+	}
+
 	if (m_connet != TRUE)
 	{
 		m_pClient = new ClientSocket();
@@ -885,6 +890,11 @@ void CMFCTransitionDlg::OnBnClickedButtonCom()
 	if (!m_spConnect)
 	{
 		m_combobox.GetLBText(id, port);
+		if (port=="")
+		{
+			AfxMessageBox(_T("串口号不正确！"));
+			return;
+		}
 		if (OpenCom(port))
 		{
 			//SetTimer(2, 3000, NULL);
@@ -912,16 +922,16 @@ void CMFCTransitionDlg::OnBnClickedButtonCom()
 				//m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINDISABLE);
 				SetIcon(m_hIcon, TRUE);			// 设置大图标
 				SetIcon(m_hIcon, FALSE);		// 设置小图标
-				m_combobox.EnableWindow(FALSE);
+				//m_combobox.EnableWindow(FALSE);
 				m_txtLog.SetWindowText(_T(""));
 				myFile.SeekToBegin();
 				myFile.WriteString(m_ipStr);
 				myFile.Write(("\r\n"), 2);
 				myFile.WriteString(temp);
 				myFile.Write(("\r\n"), 2);
-				temp.Format(_T("%d"), m_isAuto);
+				/*temp.Format(_T("%d"), m_isAuto);
 				myFile.WriteString(temp);
-				myFile.Write(("\r\n"), 2);
+				myFile.Write(("\r\n"), 2);*/
 				myFile.Flush();
 				myFile.Close();
 			}
@@ -1588,7 +1598,11 @@ void CMFCTransitionDlg::OnBnClickedButtonEnter()
 		CloseCom();
 		m_btnCom.SetWindowText(_T("打开串口"));
 		m_spConnect = FALSE;
-		m_comboCom.EnableWindow(TRUE);
+		//m_comboCom.EnableWindow(TRUE);
+		/*CRect rc;
+		m_comboCom.GetWindowRect(rc);
+		ScreenToClient(&rc);
+		InvalidateRect(rc, FALSE);*/
 		UpdateLog(_T("串口已关闭！"));
 		//m_btnEnter.EnableWindow(TRUE);
 		m_connet = FALSE;
@@ -1617,6 +1631,42 @@ void CMFCTransitionDlg::OnBnClickedButtonClose()
 	CDialogEx::OnCancel();
 }
 
+void CMFCTransitionDlg::CheckAuto()
+{
+	HKEY hKey;
+
+	CString strRegPath = _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run");//找到系统的启动项
+	if (RegOpenKeyEx(HKEY_CURRENT_USER, strRegPath, 0, KEY_ALL_ACCESS, &hKey) == ERROR_SUCCESS)
+	{
+		DWORD dwSize = 255, dwType = REG_SZ;
+		char str[256];
+		if (RegQueryValueEx(hKey, _T("Transition"), 0,&dwType,(BYTE*)str,&dwSize )==ERROR_SUCCESS)
+		{
+			m_isAuto = 1;
+			//AfxMessageBox(_T("Oh Yeah!"));
+		}
+		else
+		{
+			m_isAuto = 0;
+			//AfxMessageBox(_T("Oh Fuck!"));
+		}
+		if (m_isAuto)
+		{
+			m_bmpB_Auto.LoadBitmaps(IDB_BITMAP_AUTO_WORK, 0, 0, 0);
+			m_bmpB_Auto.SizeToContent();
+		}
+		else
+		{
+			m_bmpB_Auto.LoadBitmaps(IDB_BITMAP_AUTO_NORMAL, 0, 0, 0);
+			m_bmpB_Auto.SizeToContent();
+		}
+	}
+	else
+	{
+		UpdateLog(_T("系统参数错误"));
+	}
+
+}
 
 void CMFCTransitionDlg::OnBnClickedButtonAuto()
 {
@@ -1627,6 +1677,7 @@ void CMFCTransitionDlg::OnBnClickedButtonAuto()
 
 	if (!m_isAuto)
 	{
+		
 		if (RegOpenKeyEx(HKEY_CURRENT_USER, strRegPath, 0, KEY_ALL_ACCESS, &hKey) == ERROR_SUCCESS)
 		{
 			TCHAR szModule[MAX_PATH];
