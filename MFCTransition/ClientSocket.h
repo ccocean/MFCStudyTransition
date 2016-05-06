@@ -23,7 +23,7 @@ public:
 	~ClientSocket();
 	void SetParam(CMFCTransitionDlg *pDlg);
 	virtual void OnReceive(int nErrorCode);
-	virtual void OnClose(int nErrorCode);
+	//virtual void OnClose(int nErrorCode);
 	virtual int Send(const void* lpBuf, int nBufLen, int nFlags /* = 0 */);
 	virtual BOOL OnMessagePending();
 	BOOL SendMSG(LPSTR lpBuff, int nlen);

@@ -140,6 +140,7 @@ BOOL CMFCTransitionDlg::OnInitDialog()
 	//GetDlgItem(IDC_STATIC_BAUD2)->SetWindowText(_T("9600"));
 	GetDlgItem(IDC_IDC_CBSTATIC)->SetWindowText(_T(""));
 	GetDlgItem(IDC_EDIT_BAUD)->SetWindowText(_T("9600"));
+	m_txtLog.SetWindowText(_T(""));
 	m_comboCom.SetCurSel(0);
 	m_spConnect = FALSE;
 	m_connet = FALSE;
@@ -1151,7 +1152,7 @@ LRESULT CMFCTransitionDlg::ParseSerialPack(WPARAM wParam, LPARAM lParam)
 		ReadyBuffer[1] += 48;
 		int mode = atoi(&(ReadyBuffer[1]));
 		dn_d = mode;
-		if (CheckUpDown(up_d, dn_d))
+		if (CheckUpDown(up_d, dn_d) && up_f == 2)
 		{
 			UpdateLog(_T("重复设置！"));
 			return FALSE;
@@ -1181,7 +1182,7 @@ void CMFCTransitionDlg::OnAPICommNotify(void)
 
 	if (!m_hCom)
 	{
-		SetTimer(100, 1000, NULL);
+		//SetTimer(100, 1000, NULL);
 		//AfxMessageBox(_T("串口句柄错误！"));
 		m_txtLog.SetWindowText(_T("串口句柄错误！"));
 		return;
@@ -1519,7 +1520,6 @@ HBRUSH CMFCTransitionDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 		pDC->SetTextColor(RGB(255, 255, 255)); //设置字体颜色
 		pDC->SetBkMode(TRANSPARENT);      //属性设置为透明
 		return (HBRUSH)::GetStockObject(NULL_BRUSH); //不返回画刷
-
 	}
 	if (nCtlColor==CTLCOLOR_EDIT)
 	{
@@ -1650,6 +1650,7 @@ void CMFCTransitionDlg::CheckAuto()
 			m_isAuto = 0;
 			//AfxMessageBox(_T("Oh Fuck!"));
 		}
+		RegCloseKey(hKey);
 		if (m_isAuto)
 		{
 			m_bmpB_Auto.LoadBitmaps(IDB_BITMAP_AUTO_WORK, 0, 0, 0);

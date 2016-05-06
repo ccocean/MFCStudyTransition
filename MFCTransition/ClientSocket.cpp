@@ -271,14 +271,21 @@ BOOL ClientSocket::Packet(unsigned short msgCode, ::CMarkup &xml)
 	return nRes;
 }
 
-void ClientSocket::OnClose(int nErrorCode)
-{
-	//m_pDlg->m_editLog.Clear();
-	m_pDlg->m_listLog.ResetContent();
-	AfxMessageBox(_T("服务器关闭！"));
-	this->Close();
-	delete this;
-}
+//void ClientSocket::OnClose(int nErrorCode)
+//{
+//	//m_pDlg->m_editLog.Clear();
+//	if (nErrorCode==0)
+//	{
+//	}
+//	CString str,err;
+//	err.Format(_T("%d"), nErrorCode);
+//	str = _T("服务器关闭！错误码：");
+//	str = str + err;
+//	m_pDlg->m_listLog.ResetContent();
+//	AfxMessageBox(str);
+//	this->Close();
+//	//delete this;
+//}
 
 BOOL ClientSocket::OnMessagePending()
 {
