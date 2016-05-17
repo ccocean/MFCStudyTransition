@@ -11,7 +11,7 @@
 #define new DEBUG_NEW
 #endif
 
-char WorkBuffer[512], ReadyBuffer[PROTOCOL_LEN-4];
+char WorkBuffer[512], ReadyBuffer[PROTOCOL_LEN-3];
 unsigned char TempBuffer[5];
 unsigned int ReadyLength;
 unsigned int BufferLength = 0;
@@ -75,6 +75,7 @@ void CMFCTransitionDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_LIST2, m_list2);
 	DDX_Control(pDX, IDC_IDC_CBSTATIC, m_combobox);
 	DDX_Control(pDX, IDC_STATIC_LOG, m_txtLog);
+	DDX_Control(pDX, IDC_EDIT_BAUD, m_edtiBaud);
 }
 
 BEGIN_MESSAGE_MAP(CMFCTransitionDlg, CDialogEx)
@@ -140,6 +141,7 @@ BOOL CMFCTransitionDlg::OnInitDialog()
 	//GetDlgItem(IDC_STATIC_BAUD2)->SetWindowText(_T("9600"));
 	GetDlgItem(IDC_IDC_CBSTATIC)->SetWindowText(_T(""));
 	GetDlgItem(IDC_EDIT_BAUD)->SetWindowText(_T("9600"));
+	//m_edtiBaud.EnableWindow(FALSE);
 	m_txtLog.SetWindowText(_T(""));
 	m_comboCom.SetCurSel(0);
 	m_spConnect = FALSE;
@@ -1523,7 +1525,21 @@ HBRUSH CMFCTransitionDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 	}
 	if (nCtlColor==CTLCOLOR_EDIT)
 	{
-		if (pWnd->GetDlgCtrlID() == IDC_EDIT_BAUD || pWnd->GetDlgCtrlID() == IDC_EDIT_IP)
+		if ( pWnd->GetDlgCtrlID() == IDC_EDIT_IP)
+		{
+			m_font.CreatePointFont(92, _T("Î¢ÈíÑÅºÚ"));
+			pDC->SelectObject(&m_font);
+			pDC->SetBkColor(m_bgcolor);    // change the background  
+			// color [background colour  
+			// of the text ONLY]  
+			pDC->SetTextColor(m_textcolor); // change the text color  
+			hbr = (HBRUSH)m_bluebrush;
+			return hbr;
+		}
+	}
+	if (nCtlColor==CTLCOLOR_STATIC)
+	{
+		if (pWnd->GetDlgCtrlID() == IDC_EDIT_BAUD)
 		{
 			m_font.CreatePointFont(92, _T("Î¢ÈíÑÅºÚ"));
 			pDC->SelectObject(&m_font);

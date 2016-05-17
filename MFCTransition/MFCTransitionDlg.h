@@ -144,4 +144,5 @@ public:
 	CListBox m_list2;
 	CComboboxEx m_combobox;
 	CStatic m_txtLog;
+	CEdit m_edtiBaud;
 };
