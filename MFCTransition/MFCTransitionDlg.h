@@ -61,6 +61,8 @@ private:
 	//CTpEdit m_tpedit;
 
 public:
+	CRect rcLog;
+
 	int m_d=-1, m_e=-1, m_f=-1;//d表示合成画面，e表示录制模式，f表示导播模式,本地的状态
 	int up_d = -1, up_e = -1, up_f = -1;//服务器状态
 	int dn_d = -1, dn_e = -1, dn_f = -1;//按键状态
@@ -107,6 +109,7 @@ public:
 	CBitmapButton m_bmpB_Enter;
 	CBitmapButton m_bmpB_Auto;
 
+	void updateLogText();
 	void CheckAuto();
 	int m_isDbg = 0;
 	int m_overTime = 0;
